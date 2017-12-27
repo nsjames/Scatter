@@ -1,0 +1,11 @@
+{
+  "manifest_version": 2,
+  "name": "Scatter",
+  "description": "EOS Wallet & Bridge",
+  "version": "1.0",
+  "browser_action": { "default_icon": "icon.png", "default_popup": "index.html" },
+  "permissions": ["storage", "tabs", "notifications", "http://*/*"],
+  "content_scripts": [ { "matches": ["http://*/*", "https://*/*"], "js": ["content.js"], "run_at": "document_end" } ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+  "web_accessible_resources": [ "inject.js" ]
+}
