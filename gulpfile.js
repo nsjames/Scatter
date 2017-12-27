@@ -4,6 +4,7 @@ const browserify = require('gulp-browserify');
 const watchify = require('watchify');
 const watch = require('gulp-watch');
 const util = require('gulp-util');
+var sass = require('gulp-sass');
 const del = require('del');
 
 
@@ -18,12 +19,18 @@ gulp.task('bundle', () => transpileAndBundle('src/*/*.js'));
 const unbundled = ['content', 'popup', 'inject'];
 unbundled.map(x => gulp.task(`js:${x}`, () => transpileAndBundle(`src/${x}.js`)));
 
+gulp.task('sass:build', () => gulp.src('./src/sass/**/*.scss').pipe(sass().on('error', sass.logError)).pipe(gulp.dest('./build')));
+gulp.task('sass:watch', () => gulp.watch('./src/sass/**/*.scss', gulp.series('sass')));
+gulp.task('sass', gulp.parallel('sass:build', 'sass:watch'));
+
+
+
 gulp.task('clean', function clean() { return del(['./build/*']) });
 gulp.task('copy', gulp.series('clean', gulp.parallel(taskNames('copy', assets))));
 gulp.task('build', gulp.series('copy', gulp.parallel('bundle', taskNames('js', unbundled))));
 
 gulp.task("watch-after-build", (obj) =>  watch(["./src/**/*.js", "./src/**/*.html", "./src/**/*.json"], (obj) =>  watchType(obj.path)));
-gulp.task('watch', gulp.series('build', 'watch-after-build'));
+gulp.task('watch', gulp.series('build', gulp.parallel('watch-after-build', 'sass')));
 
 function taskNames(prefix, stack){ return stack.map(x => `${prefix}:${x}`); }
 function copy(filepath){ return gulp.src(`./src/${filepath}`).pipe(gulp.dest(`./build/`)); }
