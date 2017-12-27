@@ -4,7 +4,7 @@
   "description": "EOS Wallet & Bridge",
   "main": "main.js",
   "scripts": {
-    "dev": "gulp watch"
+    "dev": "gulp run"
   },
   "author": "nsjames",
   "license": "MIT",

@@ -8,7 +8,7 @@ var sass = require('gulp-sass');
 const del = require('del');
 
 
-// Copy html to build
+// Static assets and html
 const assets = ['index.html', 'manifest.json', 'icon.png'];
 assets.map(x => gulp.task(`copy:${x}`, () => copy(x)));
 
@@ -19,23 +19,30 @@ gulp.task('bundle', () => transpileAndBundle('src/*/*.js'));
 const unbundled = ['content', 'popup', 'inject'];
 unbundled.map(x => gulp.task(`js:${x}`, () => transpileAndBundle(`src/${x}.js`)));
 
-gulp.task('sass:build', () => gulp.src('./src/sass/**/*.scss').pipe(sass().on('error', sass.logError)).pipe(gulp.dest('./build')));
-gulp.task('sass:watch', () => gulp.watch('./src/sass/**/*.scss', gulp.series('sass')));
-gulp.task('sass', gulp.parallel('sass:build', 'sass:watch'));
-
-
-
+// Build Tools
 gulp.task('clean', function clean() { return del(['./build/*']) });
 gulp.task('copy', gulp.series('clean', gulp.parallel(taskNames('copy', assets))));
 gulp.task('build', gulp.series('copy', gulp.parallel('bundle', taskNames('js', unbundled))));
 
+// SCSS styling
+gulp.task('sass:build', () => gulp.src('./src/sass/**/*.scss').pipe(sass().on('error', sass.logError)).pipe(gulp.dest('./build')));
+gulp.task('sass:watch', () => gulp.watch('./src/sass/**/*.scss', gulp.series('sass')));
+gulp.task('sass', gulp.parallel('sass:build', 'sass:watch'));
+
+// Watch
 gulp.task("watch-after-build", (obj) =>  watch(["./src/**/*.js", "./src/**/*.html", "./src/**/*.json"], (obj) =>  watchType(obj.path)));
 gulp.task('watch', gulp.series('build', gulp.parallel('watch-after-build', 'sass')));
 
+// This is what should be used to compile and watch the extension for development.
+gulp.task('run', gulp.series('watch'));
+
+
+
+// Helper methods
 function taskNames(prefix, stack){ return stack.map(x => `${prefix}:${x}`); }
 function copy(filepath){ return gulp.src(`./src/${filepath}`).pipe(gulp.dest(`./build/`)); }
 function transpileAndBundle(src){
-    return gulp.src(src)
+    return gulp.src(src) // Not actually bundling yet.
         .pipe(useref())
         .pipe(browserify({ insertGlobals : true, debug:true }))
         .pipe(gulp.dest('./build/'))
