@@ -1,8 +1,6 @@
 import { EncryptedStream } from './streams/EncryptedStream';
 import {RandomKeyGen} from './crypto/RandomKeyGen';
 import {AES} from './crypto/AES';
-
-
 let stream = new WeakMap();
 class ContentScript {
     constructor(){
@@ -12,13 +10,12 @@ class ContentScript {
     }
 
     contentListener(msg){
-        if(!stream.synced && !msg.hasOwnProperty('type')) { stream.send({type:'error'}, "mal-warn"); return; }
+        if(!stream.synced && (!msg.hasOwnProperty('type') || msg.type !== 'sync')) { stream.send({type:'error'}, "mal-warn"); return; }
 
         switch(msg.type){
             case 'sync':
                 stream.key = msg.handshake.length ? msg.handshake : null;
                 stream.synced = true;
-                stream.send({type:'sync', success:true}, "injected")
                 break;
             case 'sign':
                 console.log("Got sign request: ", msg);

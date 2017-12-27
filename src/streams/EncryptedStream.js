@@ -18,8 +18,8 @@ export class EncryptedStream {
     }
 
     send(data, to){
-        const addSender = () => { data.from = this.eventName; }
-        const encryptIfSynced = () => { data = (this.synced) ? AES.encrypt(data, this.key) : data; }
+        const addSender = () => { data.from = this.eventName; };
+        const encryptIfSynced = () => { data = (this.synced) ? AES.encrypt(data, this.key) : data; };
 
         return new Promise((resolve, reject) => {
             if(typeof data !== 'object') { reject(); return; }
@@ -40,9 +40,8 @@ export class EncryptedStream {
 
 
 }
-
 //Private
-function dispatch(data, to){ document.dispatchEvent(getEvent(data, to)); }
+function dispatch(encryptedData, to){ document.dispatchEvent(getEvent(encryptedData, to)); }
 function getEvent(encryptedData, to){ return new CustomEvent(to, getEventInit(encryptedData)) }
 function getEventInit(encryptedData){ return {detail:encryptedData}; }
 

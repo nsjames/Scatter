@@ -2,31 +2,47 @@ const gulp = require('gulp');
 const useref = require('gulp-useref');
 const browserify = require('gulp-browserify');
 const watchify = require('watchify');
+const watch = require('gulp-watch');
+const util = require('gulp-util');
 const del = require('del');
 
 
 // Copy html to build
-gulp.task('copy:html', () => copy('index.html'));
-gulp.task('copy:manifest', () => copy('manifest.json'));
-gulp.task('copy:icon', () => copy('icon.png'));
+const assets = ['index.html', 'manifest.json', 'icon.png'];
+assets.map(x => gulp.task(`copy:${x}`, () => copy(x)));
 
-function ctask(filepath){ return gulp.src(`./src/${filepath}`).pipe(gulp.dest(`./build/`)); }
-
+// Bundle dependencies
 gulp.task('bundle', () => transpileAndBundle('src/*/*.js'));
-gulp.task('js:content', () => transpileAndBundle('src/content.js'));
-gulp.task('js:popup', () => transpileAndBundle('src/popup.js'));
-gulp.task('js:inject', () => transpileAndBundle('src/inject.js'));
+
+// Non bundled javascript files
+const unbundled = ['content', 'popup', 'inject'];
+unbundled.map(x => gulp.task(`js:${x}`, () => transpileAndBundle(`src/${x}.js`)));
 
 gulp.task('clean', function clean() { return del(['./build/*']) });
-gulp.task('copy', gulp.series('clean', gulp.parallel('copy:html', 'copy:manifest', 'copy:icon')));
-gulp.task('build', gulp.series('copy', gulp.parallel('bundle', 'js:content', 'js:popup', 'js:inject')));
+gulp.task('copy', gulp.series('clean', gulp.parallel(taskNames('copy', assets))));
+gulp.task('build', gulp.series('copy', gulp.parallel('bundle', taskNames('js', unbundled))));
 
+gulp.task("watch-after-build", (obj) =>  watch(["./src/**/*.js", "./src/**/*.html", "./src/**/*.json"], (obj) =>  watchType(obj.path)));
+gulp.task('watch', gulp.series('build', 'watch-after-build'));
 
-
+function taskNames(prefix, stack){ return stack.map(x => `${prefix}:${x}`); }
 function copy(filepath){ return gulp.src(`./src/${filepath}`).pipe(gulp.dest(`./build/`)); }
 function transpileAndBundle(src){
     return gulp.src(src)
         .pipe(useref())
         .pipe(browserify({ insertGlobals : true, debug:true }))
-        .pipe(gulp.dest('./build/'));
+        .pipe(gulp.dest('./build/'))
+}
+function watchType(fullpath){
+    function deleteAllSubFolders(){ return del(['./build/*/*']) }
+    function delFrom(){ return del([`./build/${pathFromBuildRoot}`]); }
+    function src(){ return gulp.src(`./build/${pathFromBuildRoot}`); }
+    const filename = (x => x[x.length - 1])(fullpath.split("\\"));
+    const pathFromBuildRoot = (x => x[x.length - 1])(fullpath.split("src\\"))//.replace("\\", "/");
+    util.log(filename, pathFromBuildRoot);
+    if(assets.indexOf(filename) > -1) return copy(pathFromBuildRoot);
+    else {
+        transpileAndBundle(`./src/${pathFromBuildRoot}`);
+    }
+
 }
