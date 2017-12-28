@@ -3,10 +3,12 @@ import CryptoJS from "crypto-js";
 export class AES {
 
     static encrypt(data, key){
-        return CryptoJS.AES.encrypt(JSON.stringify(data), key).toString()
+        if(typeof data === 'object') data = JSON.stringify(data);
+        return CryptoJS.AES.encrypt(data, key).toString()
     }
 
     static decrypt(encryptedData, key){
-        return JSON.parse(CryptoJS.AES.decrypt(encryptedData, key).toString(CryptoJS.enc.Utf8));
+        let clear = CryptoJS.AES.decrypt(encryptedData, key).toString(CryptoJS.enc.Utf8);
+        try { return JSON.parse(clear) } catch(e){ return clear; }
     }
 }

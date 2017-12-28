@@ -1,0 +1,48 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'D:\\Tools\\Node\\node.exe',
+1 verbose cli   'C:\\Users\\Work\\AppData\\Roaming\\npm\\node_modules\\npm\\bin\\npm-cli.js',
+1 verbose cli   'run',
+1 verbose cli   'dev' ]
+2 info using npm@3.10.6
+3 info using node@v6.9.5
+4 verbose run-script [ 'predev', 'dev', 'postdev' ]
+5 info lifecycle scatter@1.0.0~predev: scatter@1.0.0
+6 silly lifecycle scatter@1.0.0~predev: no script for predev, continuing
+7 info lifecycle scatter@1.0.0~dev: scatter@1.0.0
+8 verbose lifecycle scatter@1.0.0~dev: unsafe-perm in lifecycle true
+9 verbose lifecycle scatter@1.0.0~dev: PATH: C:\Users\Work\AppData\Roaming\npm\node_modules\npm\bin\node-gyp-bin;D:\work\extensions\scatterjs\node_modules\.bin;C:\Users\Work\bin;D:\Programs\Git\Git\mingw64\bin;D:\Programs\Git\Git\usr\local\bin;D:\Programs\Git\Git\usr\bin;D:\Programs\Git\Git\usr\bin;D:\Programs\Git\Git\mingw64\bin;D:\Programs\Git\Git\usr\bin;C:\Users\Work\bin;C:\Program Files\ImageMagick-7.0.4-Q16;C:\ProgramData\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;D:\Tools\sbt\bin;C:\Program Files (x86)\Skype\Phone;C:\Program Files (x86)\GtkSharp\2.12\bin;C:\ProgramData\ComposerSetup\bin;D:\Tools\sbt\bin;C:\Program Files (x86)\Windows Kits\8.1\Windows Performance Toolkit;D:\Programs\Git\Git\cmd;D:\Tools\Node;C:\Program Files (x86)\GnuPG\bin;C:\Ruby24-x64\bin;D:\Tools\postgres\bin;C:\Program Files\Java\jdk1.8.0_66;C:\Program Files\Java\jdk1.8.0_66\bin;C:\ProgramData\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;D:\Programs\Git\Git\cmd;D:\Programs\Xampp 7\php;C:\Users\Work\AppData\Roaming\Composer\vendor\bin;D:\Tools\AndroidSDK\platform-tools;D:\Tools\AndroidSDK\tools;D:\tools\activator;D:\Tools\maven\bin;C:\MinGW\bin;C:\Users\Work\AppData\Roaming\npm;C:\OpenSSL-Win64\bin;D:\Tools\Docker Toolbox;D:\Programs\Git\usr\bin;C:\Python27;C:\Python27\Scripts;C:\Ruby24-x64\bin;D:\Programs\Git\Git\usr\bin\vendor_perl;D:\Programs\Git\Git\usr\bin\core_perl
+10 verbose lifecycle scatter@1.0.0~dev: CWD: D:\work\extensions\scatterjs
+11 silly lifecycle scatter@1.0.0~dev: Args: [ '/d /s /c', 'gulp run' ]
+12 silly lifecycle scatter@1.0.0~dev: Returned: code: 1  signal: null
+13 info lifecycle scatter@1.0.0~dev: Failed to exec dev script
+14 verbose stack Error: scatter@1.0.0 dev: `gulp run`
+14 verbose stack Exit status 1
+14 verbose stack     at EventEmitter.<anonymous> (C:\Users\Work\AppData\Roaming\npm\node_modules\npm\lib\utils\lifecycle.js:255:16)
+14 verbose stack     at emitTwo (events.js:106:13)
+14 verbose stack     at EventEmitter.emit (events.js:191:7)
+14 verbose stack     at ChildProcess.<anonymous> (C:\Users\Work\AppData\Roaming\npm\node_modules\npm\lib\utils\spawn.js:40:14)
+14 verbose stack     at emitTwo (events.js:106:13)
+14 verbose stack     at ChildProcess.emit (events.js:191:7)
+14 verbose stack     at maybeClose (internal/child_process.js:877:16)
+14 verbose stack     at Process.ChildProcess._handle.onexit (internal/child_process.js:226:5)
+15 verbose pkgid scatter@1.0.0
+16 verbose cwd D:\work\extensions\scatterjs
+17 error Windows_NT 6.1.7601
+18 error argv "D:\\Tools\\Node\\node.exe" "C:\\Users\\Work\\AppData\\Roaming\\npm\\node_modules\\npm\\bin\\npm-cli.js" "run" "dev"
+19 error node v6.9.5
+20 error npm  v3.10.6
+21 error code ELIFECYCLE
+22 error scatter@1.0.0 dev: `gulp run`
+22 error Exit status 1
+23 error Failed at the scatter@1.0.0 dev script 'gulp run'.
+23 error Make sure you have the latest version of node.js and npm installed.
+23 error If you do, this is most likely a problem with the scatter package,
+23 error not with npm itself.
+23 error Tell the author that this fails on your system:
+23 error     gulp run
+23 error You can get information on how to open an issue for this project with:
+23 error     npm bugs scatter
+23 error Or if that isn't available, you can get their info via:
+23 error     npm owner ls scatter
+23 error There is likely additional logging output above.
+24 verbose exit [ 1, true ]
