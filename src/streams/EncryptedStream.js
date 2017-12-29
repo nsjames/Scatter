@@ -1,5 +1,5 @@
 
-import {AES} from '../crypto/AES';
+import {AES} from '../cryptography/AES';
 
 export class EncryptedStream {
     constructor(_eventName, _randomized){

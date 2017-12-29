@@ -1,6 +1,10 @@
 import {Network} from "../models/network";
 import {Settings} from "../models/settings";
 import {Keychain} from "../models/keychain";
+import {StorageService} from '../services/StorageService';
+import {WaterfallEncryption} from '../cryptography/WaterfallEncryption'
+import {AES} from '../cryptography/AES';
+import {LocalStream} from '../streams/LocalStream';
 
 export class ScatterData {
 
@@ -18,10 +22,22 @@ export class ScatterData {
 
 	static fromJson(json) {
 		let p = Object.assign(this.placeholder(), json);
+		if(!json) return p;
 		if(json.hasOwnProperty('meta')) p.meta = Meta.fromJson(json.meta);
 		if(json.hasOwnProperty('data')) p.data = Data.fromJson(json.data);
 		return p;
 	}
+	lock(seed){ this.data.locked = true; }
+    unlock(seed){ this.data.locked = false; }
+
+    static update(scatter, type = "settings"){
+        return new Promise((resolve, reject) => {
+            LocalStream.send({msg:`update-${type}`, scatter}).then(response => {
+            	scatter = response;
+                resolve(true);
+            })
+		})
+    }
 
 }
 
@@ -49,6 +65,8 @@ export class Data {
         this.keychain = null;
         this.whitelist = null;
         this.blacklist = null;
+        this.locked = null;
+        this.hash = "";
 	}
 
 	static placeholder() {
@@ -57,6 +75,8 @@ export class Data {
 		p.keychain = Keychain.placeholder();
 		p.whitelist = [];
 		p.blacklist = [];
+		p.locked = true;
+		p.hash = '';
 		return p;
 	}
 

@@ -1,6 +1,6 @@
 import { EncryptedStream } from './streams/EncryptedStream';
-import {RandomKeyGen} from './crypto/RandomKeyGen';
-import {AES} from './crypto/AES';
+import {RandomKeyGen} from './cryptography/RandomKeyGen';
+import {AES} from './cryptography/AES';
 let stream = new WeakMap();
 class ContentScript {
     constructor(){

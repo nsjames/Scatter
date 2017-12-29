@@ -3,15 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <title>Scatter</title>
+    <link href="https://fonts.googleapis.com/css?family=Grand+Hotel|Open+Sans:400,600|Raleway:400,600,700,800" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body style="width:360px; height:500px;">
     <section id="scatter">
-        {{test}}
+        <section class="top" :class="{'half-screen' : this.$route.name === 'auth', 'full-screen':this.$route.name === 'settings'}"></section>
+        <section class="bottom" :class="{'half-screen' : this.$route.name === 'auth', 'hidden-screen':this.$route.name === 'settings'}"></section>
+
+        <figure v-on:click="toggleSettings" class="settings-button"><i class="fa fa-gear"></i></figure>
+        <a class="logo" :class="this.$route.name">Scatter</a>
+
+        <transition name="fade">
+            <router-view></router-view>
+        </transition>
+        <!--<router-link to="/">Auth</router-link>-->
+        <!--<router-link to="keychain">Keychain</router-link>-->
+        <!--<router-link to="settings">Settings</router-link>-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     </section>
+
+
+
 
 
     <script src="vendor/vue.js"></script>
     <script src="vendor/vue-resource.js"></script>
+    <script src="vendor/vue-router.js"></script>
     <script type="text/javascript" src="popup.js"></script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

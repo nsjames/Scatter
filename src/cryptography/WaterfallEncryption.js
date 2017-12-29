@@ -1,4 +1,4 @@
-import {AES} from '../crypto/AES';
+import {AES} from '../cryptography/AES';
 import {ScatterData} from '../models/scatter';
 import SHA256 from "crypto-js/sha256";
 
@@ -13,16 +13,13 @@ export class WaterfallEncryption {
      * @param cleartext - A json object or string
      * @param passkey - the key to unlock
      * @param algorithm - a function for hashing which takes cleartext and a key
-     * @returns Tupl[Hash, Checksum] || null if below 100 characters (consider padding(?))
+     * @returns string
      */
     static encrypt(cleartext, passkey, algorithm){
         let temp = Object.assign({}, cleartext);
 
         // Always convert to string
         if(typeof temp === 'object') temp = JSON.stringify(temp);
-
-        // Exit on less than 100 bytes ( low entropy )
-        if(temp.length < 100) return null;
 
         let segments = stringToChunks(temp);
         let rootSegment = segments.shift();
