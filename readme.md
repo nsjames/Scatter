@@ -8,7 +8,8 @@ Dependencies:
 
 
 Chrome dev settings
-look up `LocalStream.js Line:13` and change this line `if(sender.id !== 'jokgdlbdbnpidobcndjfneoaolplaood') return;`
+look up `LocalStream.js Line:13` and change this line
+```if(sender.id !== 'jokgdlbdbnpidobcndjfneoaolplaood') return;```
 to include your extension id. You can see it in the chrome extensions panel `chrome://extensions/`
 
 
