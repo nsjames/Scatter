@@ -8,6 +8,8 @@ add to chrome as a developer extension and then create a simple html file with a
 
 Dependencies:
 `npm i -g gulp-cli`
+
+
 `npm i babel-preset-es2015 babel-preset-stage-2`
 
 
