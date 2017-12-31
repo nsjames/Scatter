@@ -54,7 +54,11 @@ export class Background {
     }
     static keychain(sendResponse){
         StorageService.get().then(scatter => {
-            sendResponse(WaterfallEncryption.decrypt(scatter.data.keychain, seed, AES.decrypt));
+            scatter = ScatterData.fromJson(scatter);
+            scatter.data.keychain.wallets.map(x => {
+                x.decrypt(seed);
+            });
+            sendResponse(scatter);
         });
     }
 
