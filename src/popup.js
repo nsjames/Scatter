@@ -26,6 +26,8 @@ export class Popup {
         this.app = new Vue({
             router:this.router
         }).$mount('#scatter');
+
+
     }
 
     registerReusableComponents(){
@@ -37,6 +39,7 @@ export class Popup {
     setupRouting(){
         this.router = new VueRouter({ routes:routes });
         this.router.beforeEach((to, from, next) => {
+            console.log(this.router.currentRoute);
             switch(to.name){
                 case 'auth': this.beforeAuth(next); break;
                 case 'keychain': this.beforeKeychain(next); break;
@@ -48,6 +51,9 @@ export class Popup {
         Vue.prototype.toggleSettings = () => {
             this.router.push({name:(this.router.currentRoute.name === 'settings' ? 'auth' :'settings')});
         }
+        // TODO: Adding global methods here for now.
+        Vue.prototype.truncateKey = (key) => { return (key.length) ? key.substr(0, 3) + '.....' + key.substr(key.length -4) : ''; }
+        Vue.prototype.hideSettingsButton = false;
     }
 
     beforeAuth(next){

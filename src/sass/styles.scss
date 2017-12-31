@@ -38,7 +38,7 @@ div, figure, section, nav, article {
 
 .half-screen { height:250px; }
 .full-screen { height:250px; }
-.hidden-screen { height:0; }
+.hidden-screen { height: 435px; }
 
 footer {
   position:fixed;
@@ -49,7 +49,11 @@ footer {
   height:8px;
 }
 
++
 
+/** ANIMATIONS ------------------------------------*/
+
+// Vue builtins
 .fade-enter-active, .fade-leave-active {
   transition-property: opacity, top;
   transition-duration: .25s;
@@ -61,6 +65,12 @@ footer {
 
 .fade-enter, .fade-leave-active {
   opacity: 0;
+}
+
+
+@keyframes spin {
+  0% { transform:rotateZ(0deg); }
+  100% { transform:rotateZ(360deg); }
 }
 
 
@@ -91,6 +101,11 @@ footer {
     left:calc(100% - 100px);
     top:16px;
     font-size:22px;
+
+    &.editing {
+      right: 30px;
+      left: calc(100% - 70px);
+    }
   }
 
   &.settings {
@@ -122,11 +137,23 @@ footer {
   color:$settings;
   cursor: pointer;
   z-index:2;
+  transform-origin:center;
+  transition:max-width 0.3s ease;
+  overflow: hidden;
+
+  &.hide {
+    max-width:0;
+  }
 
   :hover {
     color:$dark-gray;
     transition:all 0.3s ease;
     transition-property:color;
+    animation-name: spin;
+    animation-duration: 8s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+
   }
 
   :active {
@@ -157,10 +184,18 @@ button {
   position: relative;
   margin-bottom:10px;
   text-align:center;
-  transition:background 0.2s ease;
+  transition:all 0.2s ease;
+  box-shadow:0 1px 1px rgba(0,0,0,0);
+  transition-property: background, box-shadow;
 
-  &:hover { background:transparent; }
-  &:active { background:$white; }
+  &:hover {
+    background:transparent;
+    //box-shadow:0 4px 7px rgba(0,0,0,0.1);
+  }
+  &:active {
+    background:$white;
+    //box-shadow:0 1px 1px rgba(0,0,0,0);
+  }
   &.red {
     border:2px solid #d02222;
     background:#f73e3e;
@@ -168,6 +203,15 @@ button {
 
     &:hover { background:transparent; color:#f73e3e; }
     &:active { background:$white; }
+  }
+
+  &.half {
+    width:calc(50% - 7px);
+    display:inline-block;
+
+    &:first-child {
+      margin-right:10px;
+    }
   }
 }
 
@@ -185,6 +229,12 @@ button {
   z-index: 0;
   margin-bottom:10px;
 
+  &.half {
+    width:calc(50% - 7px);
+    display:inline-block;
+    margin-right:10px;
+  }
+
   .icon {
     position:absolute;
     top:13px;
@@ -197,11 +247,24 @@ button {
     background: transparent;
     outline:0;
     border:0;
-    width:100%;
-    height:46px;
+    width:calc(100% - 40px);
+    height:100%;
     font-size:18px;
     font-family: 'Raleway', sans-serif;
-    padding:0 20px 0 50px;
+    padding: 0 20px 0 20px;
+
+    &.with-icon {
+      width:calc(100% - 70px);
+      padding:0 20px 0 50px;
+    }
+  }
+
+  &.short {
+    height:40px;
+
+    input {
+      width:calc(100% - 60px);
+    }
   }
 }
 
@@ -318,37 +381,100 @@ button {
 
     .dup {
       height:71px;
-      padding:20px 20px 10px 20px;
+      padding:20px;
       border-bottom:1px solid $dropdown-bg;
+
+      &.editing {
+        height:60px;
+      }
 
       .lock {
         cursor: pointer;
         font-size:18px;
         height:18px;
         display:inline-block;
-        padding-right:3px;
-        transition:color 0.2s ease;
+        transition:color 0.1s ease;
+        vertical-align: super;
+        padding-right:5px;
 
         &:hover {
-          color:rgba(0,0,0,0.3);
+          color:$red;
+        }
+      }
+
+      .edit {
+        cursor: pointer;
+        font-size:18px;
+        height:18px;
+        display:inline-block;
+        transition:color 0.1s ease;
+        vertical-align: super;
+        padding-right:5px;
+
+        &:hover {
+          color:$red;
         }
       }
 
       .wallet-name {
-        font-size:18px;
+        font-size: 18px;
         display: inline-block;
+        padding: 2px 5px;
+        border-radius: 4px;
+        margin-top: -4px;
+        width: 58%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border: 1px solid transparent;
+        box-shadow:0 1px 2px rgba(0,0,0,0);
+        background:transparent;
+        transition:all 0.1s ease;
+        transition-property: box-shadow, border, background, color;
+        outline:0;
+        vertical-align:top;
+        font-family:'Raleway', sans-serif;
+
+        &:hover {
+          border:1px solid rgba(0,0,0,0.1);
+          box-shadow:0 2px 2px rgba(0,0,0,0.1);
+        }
+
+        &:active {
+          border:1px solid rgba(255,255,255,1);
+          box-shadow:0 -2px 1px rgba(255,255,255,1), inset 0 10px 20px -10px rgba(0,0,0,0.05);
+          background:rgba(0,0,0,0.05);
+          color:rgba(0,0,0,0.1);
+          transition:all 0.2s ease;
+        }
+
+        &:focus {
+          border:1px solid rgba(255,255,255,1);
+          box-shadow:0 -2px 1px rgba(255,255,255,1), inset 0 10px 20px -10px rgba(0,0,0,0.05);
+          background:rgba(0,0,0,0.05);
+          color:rgba(0,0,0,0.5);
+          transition:all 0.2s ease;
+        }
+      }
+
+      .wallet-keys {
+        width: 50%;
+        float: left;
+        font-size: 10px;
+        color: #ccc;
       }
 
       .truncated-key {
         font-size:13px;
         color:$gray;
+        margin-top:1px;
       }
 
       .send-recv {
         text-align:right;
         font-size:12px;
         font-weight:bold;
-        margin-top:-8px;
+        margin-top:7px;
 
         * {
           cursor: pointer;
@@ -367,6 +493,10 @@ button {
     .ddown {
       width:100%;
       height:69px;
+
+      &.editing {
+        padding:14px 20px;
+      }
 
       .fifty {
         width:50%;
@@ -413,7 +543,14 @@ button {
             border-bottom-left-radius: 4px;
           }
 
-          &.active, &:hover {
+          &:hover {
+            background:#fff;
+            box-shadow:0 5px 10px rgba(0,0,0,0.05), 0 2px 15px rgba(0,0,0,0.05);
+            color:$dark-gray;
+            text-shadow:4px 6px 15px rgba(0,0,0,0), 0 1px 4px rgba(0,0,0,0);
+          }
+
+          &.active {
             background:#e8e8e8;
             box-shadow:inset 0 20px 50px rgba(0,0,0,0.14), inset 0 2px 15px rgba(0,0,0,0.05);
             color:$white;
@@ -430,7 +567,8 @@ button {
     height:359px;
     left:0;
     right:0;
-    overflow: auto;
+    overflow-y: scroll;
+    overflow-x:hidden;
     padding:0 20px;
     color:$darker-gray;
 
@@ -438,7 +576,14 @@ button {
       padding:20px 0;
       box-shadow:0 1px rgba(0,0,0,0.1), 0 2px $white;
       font-family:'Raleway', sans-serif;
-      overflow:hidden;
+
+      &.event {
+        overflow:hidden;
+      }
+
+      .public-key {
+
+      }
 
       .fifty {
         width:50%;
@@ -472,6 +617,154 @@ button {
         }
       }
 
+      &.editing {
+        padding:20px 0 10px 0;
+      }
+
+      .keypair-accounts {
+        height:25px;
+        width:100%;
+
+        .deleted {
+          width:60%;
+          float:left;
+          font-size: 12px;
+          line-height: 24px;
+          font-weight: bold;
+        }
+
+        .authority {
+          width:60%;
+          float:left;
+
+          &.warn {
+            text-transform: uppercase;
+            color:$red;
+            font-weight:900;
+          }
+
+          .info {
+            margin-left:4px;
+            padding:0 6px;
+            height:14px;
+            border-radius:4px;
+            background:#eaeaea;
+            color:$white;
+            box-shadow:0 -1px 0 #d3d3d3;
+            text-shadow:0 1px 0 #cccccc;
+            text-align:center;
+            line-height:14px;
+            font-size:10px;
+            cursor: pointer;
+            vertical-align:super;
+            display:inline-block;
+            transition:all 0.2s ease;
+            transform:translateY(0px);
+            transition-property: background, box-shadow, text-shadow, transform;
+            position: relative;
+            z-index:99999;
+
+            &:hover {
+              background:#5f5f5f;
+              box-shadow:0 3px 0 #414141;
+              text-shadow:0 1px 0 #252525;
+              transform:translateY(-3px);
+
+            }
+
+            &:hover .box {
+              display:block;
+            }
+
+            .box {
+              width:220px;
+              min-height:38px;
+              position:absolute;
+              left:8px;
+              background:$white;
+              border-radius:4px;
+              box-shadow:0 1px 3px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1);
+              display:none;
+              text-transform: none;
+
+
+              .account {
+                height:38px;
+                line-height:38px;
+                text-shadow:none;
+                overflow:hidden;
+                padding:0 10px;
+                font-weight:400;
+                font-size:11px;
+
+                &:not(:last-child){
+                  border-bottom:1px solid #f0f0f0;
+                }
+
+                .auth {
+                  float:left;
+                  color:$dark-gray;
+                  border:1px solid $dark-gray;
+                  line-height: 11px;
+                  padding: 5px;
+                  margin-top:8px;
+                  border-radius:4px;
+
+                  &.is-owner {
+                    background:$red;
+                    color:$white;
+                    border:0;
+                  }
+                }
+                .name {
+                  color:$dark-gray;
+                  float:left;
+                  margin-left:8px;
+                  width:calc(100% - 60px);
+                  text-align:left;
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                }
+              }
+            }
+          }
+        }
+
+        .action-button {
+          cursor: pointer;
+          height:21px;
+          padding:0 5px;
+          line-height:21px;
+          font-size:12px;
+          font-family: 'Raleway', sans-serif;
+          border:1px solid #cccccc;
+          color:#cccccc;
+          transition:all 0.2s ease;
+          transition-property: background, border, color;
+          float:right;
+          border-radius:4px;
+          margin-left:2px;
+
+          &:hover, &.active {
+            border:1px solid $red;
+            background:$red;
+            color:#fff;
+          }
+        }
+      }
+
+    }
+
+    .edit-wallet-actions {
+      margin-top:20px;
+
+      .line {
+        width:100%;
+        height:1px;
+        background:#eeeeee;
+        margin-bottom:10px;
+      }
     }
   }
 }
@@ -481,7 +774,8 @@ button {
 
 
 
+
 /* SETTINGS ----------------------------------------------*/
 .settings-component {
-  padding:65px 20px 0;
+  padding:85px 20px 0;
 }

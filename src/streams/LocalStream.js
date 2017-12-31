@@ -10,8 +10,7 @@ export class LocalStream {
     static watch(callback){
         chrome.runtime.onMessage.addListener(
             function(request, sender, sendResponse) {
-                //TODO: Change to env
-                if(sender.id !== 'jokgdlbdbnpidobcndjfneoaolplaood') return;
+                if(sender.id !== chrome.runtime.id) return;
                 callback(request, sendResponse);
                 return true;
             }

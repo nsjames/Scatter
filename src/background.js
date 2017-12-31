@@ -21,8 +21,7 @@ export class Background {
                 case 'lock': Background.lock(sendResponse); break;
                 case 'unlock': Background.unlock(sendResponse); break;
                 case 'keychain': Background.unlock(sendResponse); break;
-                case 'update-settings': Background.updateSettings(sendResponse, request.scatter); break;
-                case 'update-keychain': Background.updateKeychain(sendResponse, request.scatter); break;
+                case 'update': Background.update(sendResponse, request.scatter); break;
                 case 'reset': chrome.storage.local.clear(); sendResponse({}); break;
                 // default: sendResponse(null);
             }
@@ -59,23 +58,18 @@ export class Background {
         });
     }
 
-    static updateSettings(sendResponse, scatter){
-        StorageService.get().then(persistent => {
-            scatter.data.keychain = persistent.data.keychain
-            StorageService.save(scatter).then(saved => {
-                sendResponse(scatter)
-            })
-        })
-
-    }
-
-    static updateKeychain(sendResponse, scatter){
-        StorageService.get().then(persistent => {
-            console.log('persistent', persistent)
-            persistent.data.keychain = WaterfallEncryption.encrypt(scatter.data.keychain, seed, AES.encrypt);
-            StorageService.save(persistent).then(saved => {
-                sendResponse(persistent)
-            })
+    static update(sendResponse, scatter){
+        // StorageService.get().then(persistent => {
+        //
+        // })
+        //TODO: Only update editable things, to preserve integrity
+        scatter = ScatterData.fromJson(scatter);
+        scatter.data.keychain.wallets.map(x => {
+            x.prepareForSaving();
+            x.encrypt(seed);
+        });
+        StorageService.save(scatter).then(saved => {
+            sendResponse(scatter)
         })
     }
 }

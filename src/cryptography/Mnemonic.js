@@ -8,6 +8,11 @@ export class Mnemonic {
         return [mnemonic, bip39.mnemonicToSeedHex(mnemonic)];
     }
 
+    static generateDanglingMnemonic() {
+        let mnemonic = bip39.generateMnemonic();
+        return [mnemonic, bip39.mnemonicToSeedHex(mnemonic)];
+    }
+
     static mnemonicPasses(mnemonic, seed) {
         if(!bip39.validateMnemonic(mnemonic)) return false;
         return bip39.mnemonicToSeedHex(mnemonic) === seed

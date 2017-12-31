@@ -30,9 +30,9 @@ export class ScatterData {
 	lock(seed){ this.data.locked = true; }
     unlock(seed){ this.data.locked = false; }
 
-    static update(scatter, type = "settings"){
+    static update(scatter){
         return new Promise((resolve, reject) => {
-            LocalStream.send({msg:`update-${type}`, scatter}).then(response => {
+            LocalStream.send({msg:'update', scatter}).then(response => {
             	scatter = response;
                 resolve(true);
             })

@@ -16,12 +16,6 @@ add to chrome as a developer extension and then create a simple html file with a
 ------
 
 
-### Chrome dev settings
-look up `LocalStream.js Line:13` and change this line
-```if(sender.id !== 'jokgdlbdbnpidobcndjfneoaolplaood') return;```
-to include your extension id. You can see it in the chrome extensions panel `chrome://extensions/`
-
-
 ### Usage example for the interacting webpage
 ```
 (function(){

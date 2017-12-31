@@ -10,7 +10,8 @@ class ContentScript {
     }
 
     contentListener(msg){
-        if(!stream.synced && (!msg.hasOwnProperty('type') || msg.type !== 'sync')) { stream.send({type:'error'}, "mal-warn"); return; }
+        if(!stream.synced && (!msg.hasOwnProperty('type') || msg.type !== 'sync'))
+            { stream.send({type:'error'}, "mal-warn"); return; }
 
         switch(msg.type){
             case 'sync':

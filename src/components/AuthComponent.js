@@ -30,20 +30,17 @@ const AuthComponent = {
         createNewKeychain:function(){
             // TODO: Error handling
 
-            let mnemonic = Mnemonic.generateMnemonic(this.password);
+            let [mnemonic, seed] = Mnemonic.generateMnemonic(this.password);
             Vue.prototype.scatterData.data.hash = PasswordHasher.hash(this.password);
             this.password = '';
 
-            LocalStream.send({msg:'seed', seed:mnemonic[1]}).then(res => {
-                ScatterData.update(Vue.prototype.scatterData, 'settings').then(saved => {
-                    ScatterData.update(Vue.prototype.scatterData, 'keychain').then(saved => {
+            LocalStream.send({msg:'seed', seed}).then(res => {
+                ScatterData.update(Vue.prototype.scatterData).then(saved => {
+                    //TODO: Display mnemonic instead before routing to 'keychain'
+                    console.log('mnemonic', mnemonic);
 
-                        //TODO: Display mnemonic instead before routing to 'keychain'
-                        console.log('mnemonic', mnemonic[0]);
-
-                        this.keychainAvailable = true;
-                        this.$router.push({name:'keychain'});
-                    })
+                    this.keychainAvailable = true;
+                    this.$router.push({name:'keychain'});
                 })
             });
         },
