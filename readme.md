@@ -3,6 +3,8 @@
 add to chrome as a developer extension and then create a simple html file with a <button id="button"></button> in it for testing and the code below.
 
 
+### Standalone
+If you would like to just download and install the plugin's current build [you can do so here](https://github.com/nsjames/Scatter/raw/master/dev-build.zip)
 -------
 
 
