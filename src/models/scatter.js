@@ -33,8 +33,7 @@ export class ScatterData {
     static update(scatter){
         return new Promise((resolve, reject) => {
             LocalStream.send({msg:'update', scatter}).then(response => {
-            	scatter = response;
-                resolve(true);
+                resolve(response);
             })
 		})
     }

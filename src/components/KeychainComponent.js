@@ -47,8 +47,8 @@ const KeychainComponent = {
                     console.log("There was an issue decrypting the wallet")
                     return false;
                 }
-                let decryptedWallet = response.data.keychain.wallets.find(x => x.name === this.openedWallet.name);
-                this.openedWallet.keyPairs = decryptedWallet.keyPairs.map(x => KeyPair.fromJson(x));
+                let wallet = response.data.keychain.wallets.find(x => x.name === this.openedWallet.name);
+                this.openedWallet.keyPairs = wallet.keyPairs.map(x => KeyPair.fromJson(x));
                 this.openedWallet.edit();
             })
 
@@ -107,8 +107,12 @@ const KeychainComponent = {
             if(this.wallets.length) this.wallets = this.wallets.filter(x => x.name !== this.preEditedWallet.name);
             this.wallets.push(this.openedWallet);
 
+            Vue.prototype.scatterData.data.keychain.wallets = this.wallets;
+
             ScatterData.update(Vue.prototype.scatterData).then(saved => {
+                Vue.prototype.scatterData.data.keychain.wallets = saved.data.keychain.wallets.map(x => Wallet.fromJson(x));
                 this.wallets = Vue.prototype.scatterData.data.keychain.wallets;
+
                 this.openedWallet = this.wallets.filter(x => x.name === this.openedWallet.name)[0];
                 this.openedWallet.stopEditing();
             })

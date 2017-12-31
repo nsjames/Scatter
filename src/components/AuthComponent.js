@@ -36,6 +36,7 @@ const AuthComponent = {
 
             LocalStream.send({msg:'seed', seed}).then(res => {
                 ScatterData.update(Vue.prototype.scatterData).then(saved => {
+                    Vue.prototype.scatterData = ScatterData.fromJson(saved);
                     //TODO: Display mnemonic instead before routing to 'keychain'
                     console.log('mnemonic', mnemonic);
 
