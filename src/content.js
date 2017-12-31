@@ -1,30 +1,40 @@
 import { EncryptedStream } from './streams/EncryptedStream';
+import { LocalStream } from './streams/LocalStream';
 import {RandomKeyGen} from './cryptography/RandomKeyGen';
 import {AES} from './cryptography/AES';
-let stream = new WeakMap();
+import EOSMessageTypes from './eos/EOSMessageTypes';
+
+let webStream = new WeakMap();
+let internalStream = new WeakMap();
 class ContentScript {
     constructor(){
-        stream = new EncryptedStream("scatter", RandomKeyGen.generate(12));
-        stream.listenWith((msg) => this.contentListener(msg));
+        webStream = new EncryptedStream("scatter", RandomKeyGen.generate(12));
+        webStream.listenWith((msg) => this.contentListener(msg));
+
+        internalStream = new LocalStream();
+
         this.injectScript('inject.js');
     }
 
+    // TODO: Move logic into an actual handler
     contentListener(msg){
-        if(!stream.synced && (!msg.hasOwnProperty('type') || msg.type !== 'sync'))
-            { stream.send({type:'error'}, "mal-warn"); return; }
+        if(!webStream.synced && (!msg.hasOwnProperty('type') || msg.type !== 'sync'))
+            { webStream.send({type:'error'}, "mal-warn"); return; }
 
         switch(msg.type){
             case 'sync':
-                stream.key = msg.handshake.length ? msg.handshake : null;
-                stream.synced = true;
+                webStream.key = msg.handshake.length ? msg.handshake : null;
+                webStream.synced = true;
                 break;
-            case 'sign':
-                console.log("Got sign request: ", msg);
-                stream.send({type:'signed', signature:'ASFDKJDSKFJ'}, "injected")
+            case EOSMessageTypes.GET_PUBLIC_KEY:
+                webStream.send({type:'signed', signature:'ASFDKJDSKFJ'}, "injected")
+                break;
+            case EOSMessageTypes.SIGN_MSG:
+                webStream.send({type:'signed', signature:'ASFDKJDSKFJ'}, "injected")
                 break;
             default:
-                console.log("Default", msg, stream.key)
-                stream.send({type:'from default content script switch'}, "injected")
+                console.log("Default", msg, webStream.key)
+                webStream.send({type:'from default content script switch'}, "injected")
         }
     }
 

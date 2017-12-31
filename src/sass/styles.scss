@@ -456,6 +456,10 @@ button {
         vertical-align:top;
         font-family:'Raleway', sans-serif;
 
+        &:not(input){
+          cursor: pointer;
+        }
+
         &:hover {
           border:1px solid rgba(0,0,0,0.1);
           box-shadow:0 2px 2px rgba(0,0,0,0.1);
@@ -593,13 +597,96 @@ button {
     padding:0 20px;
     color:$darker-gray;
 
+    .no-items {
+      text-align: center;
+      width: 100%;
+      padding: 50px 20px;
+
+      .title {
+        font-size:18px;
+        font-family: 'Raleway', sans-serif;
+        font-weight:bold;
+      }
+
+      .sub-title {
+        padding-top:10px;
+      }
+    }
+
     .item {
       padding:20px 0;
-      box-shadow:0 1px rgba(0,0,0,0.1), 0 2px $white;
       font-family:'Raleway', sans-serif;
+
+      &:not(&.wallet){
+        box-shadow:0 1px rgba(0,0,0,0.1), 0 2px $white;
+      }
 
       &.event {
         overflow:hidden;
+      }
+
+      &.wallet {
+        cursor: pointer;
+        overflow: hidden;
+        padding: 5px 0;
+        box-shadow:0 1px 1px rgba(0,0,0,0);
+        transform:scale(1);
+        transition:all 0.2s ease;
+        transition-property: box-shadow, transform, background;
+
+        &:first-child {
+          padding: 20px;
+          border: 1px solid rgba(0,0,0,0.1);
+          border-radius: 4px;
+          margin: 20px 0;
+          cursor: pointer;
+        }
+
+        &:not(:first-child){
+          margin: 3px 0;
+          border-radius: 4px;
+          padding:5px;
+          background: rgba(0,0,0,0.018);
+        }
+
+        &:hover {
+          background:rgba(255,255,255,1);
+          box-shadow:0 1px 4px rgba(0,0,0,0.2);
+          transform:scale(1.02);
+        }
+
+        &:active {
+          background: rgba(0,0,0,0.018);
+          box-shadow:0 1px 1px rgba(0,0,0,0);
+          transform:scale(1);
+        }
+
+        .keys {
+          font-size: 9px;
+          width: 40px;
+          display: inline-block;
+          height: 20px;
+          border: 1px solid rgba(0,0,0,0.1);
+          border-radius: 4px;
+          line-height: 20px;
+          padding: 0 5px;
+          font-family: 'Open Sans', sans-serif;
+          vertical-align: top;
+
+          i {
+            padding-right:4px;
+          }
+
+
+        }
+
+        .name {
+          font-size: 16px;
+          font-family: 'Raleway', sans-serif;
+          width: calc(100% - 45px);
+          display: inline-block;
+          padding: 0 5px;
+        }
       }
 
       .public-key {

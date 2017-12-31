@@ -14,11 +14,12 @@ const KeychainComponent = {
 
     data() {
         return {
+            listStates:{HISTORY:'history', DOMAINS:'domains', CHOOSE_WALLET:'choose_wallet'},
             listState:'history',
             listItems:[],
 
-            wallets:Vue.prototype.scatterData.data.keychain.wallets || [],
-            openedWallet:Vue.prototype.scatterData.data.keychain.wallets[0] || Wallet.newWallet(),
+            wallets:Vue.prototype.scatterData.data.keychain.wallets,
+            openedWallet:Vue.prototype.scatterData.data.keychain.getOpenWallet(),
 
             generatingNewKey:false,
             newKeyPair:KeyPair.placeholder(),
@@ -28,12 +29,36 @@ const KeychainComponent = {
     methods: {
         setData:function(obj){ console.log("Setting data: ", obj); },
 
-        toggleListState:function(){ this.listState = this.listState === 'history' ? 'domains' : 'history' },
         lock:function(){
             LocalStream.send({msg:'lock'}).then(locked => {
                 Vue.prototype.scatterData = ScatterData.fromJson(locked);
                 this.$router.push({name:'auth'});
             })
+        },
+
+        selectListState:function(state){ this.listState = state; },
+        selectingWallet:function(){ return this.listState === this.listStates.CHOOSE_WALLET; },
+        toggleSelectingWallet:function(){ this.selectListState(this.selectingWallet() ? this.listStates.HISTORY : this.listStates.CHOOSE_WALLET); },
+        selectWallet:function(name){
+            console.log(`Opening wallet ${name}`)
+            LocalStream.send({msg:'open', name}).then(response => {
+                console.log("Response?: ", response)
+                //TODO: Error handling
+                if(!response) {
+                    console.log(`There was an issue opening this wallet: ${name}`);
+                    return false;
+                }
+
+                Vue.prototype.scatterData = ScatterData.fromJson(response);
+                this.openedWallet = Vue.prototype.scatterData.data.keychain.getOpenWallet();
+                this.wallets = Vue.prototype.scatterData.data.keychain.wallets;
+                this.listState = this.listStates.HISTORY;
+            })
+        },
+
+        createNewWallet:function(){
+
+            this.openedWallet = Wallet.newWallet();
         },
 
 
@@ -47,14 +72,12 @@ const KeychainComponent = {
                     console.log("There was an issue decrypting the wallet")
                     return false;
                 }
-                let wallet = response.data.keychain.wallets.find(x => x.name === this.openedWallet.name);
+
+                let wallet = response.data.keychain.wallets.find(x => x.uniqueKey === this.openedWallet.uniqueKey);
                 this.openedWallet.keyPairs = wallet.keyPairs.map(x => KeyPair.fromJson(x));
                 this.openedWallet.edit();
             })
 
-        },
-        cancel:function(){
-            this.openedWallet = this.preEditedWallet;
         },
 
         importPrivateKey:function(){
@@ -70,23 +93,16 @@ const KeychainComponent = {
                 return false;
             }
 
-            // TODO: Get accounts..
             EOSService.getAccountsFromPublicKey(keyPair.publicKey).then(keyPairAccounts => {
                 keyPair.setAccounts(keyPairAccounts);
                 this.openedWallet.keyPairs.push(keyPair);
                 this.newKeyPair = KeyPair.placeholder();
             })
-
         },
 
         generateNewKey:function(){
             this.newKeyPair = EOSKeygen.generateKeys();
             if(!this.openedWallet.keyPairs.length) this.openedWallet.default = this.newKeyPair.publicKey;
-
-            // TODO: Remove for production, just UI testing
-            // if(this.openedWallet.keyPairs.length < 1) this.newKeyPair.accounts.push(KeyPairAccount.fromJson({name:'Test', authority:'Owner'}))
-            // if(this.openedWallet.keyPairs.length < 2) this.newKeyPair.accounts.push(KeyPairAccount.fromJson({name:'Test', authority:'Active'}))
-
             this.openedWallet.keyPairs.push(this.newKeyPair);
             this.newKeyPair = KeyPair.placeholder();
         },
@@ -103,21 +119,35 @@ const KeychainComponent = {
                 return false;
             }
 
-            this.openedWallet.prepareForSaving();
-            if(this.wallets.length) this.wallets = this.wallets.filter(x => x.name !== this.preEditedWallet.name);
+            if(this.wallets.filter(x => x.uniqueKey !== this.openedWallet.uniqueKey && x.name === this.openedWallet.name).length){
+                alert("Wallet must have unique names");
+                return false;
+            }
+
+            if(this.wallets.length) this.wallets = this.wallets.filter(x => x.uniqueKey !== this.preEditedWallet.uniqueKey);
             this.wallets.push(this.openedWallet);
 
-            Vue.prototype.scatterData.data.keychain.wallets = this.wallets;
+            let scatter = Vue.prototype.scatterData.clone();
+            scatter.data.keychain.wallets = this.wallets;
 
-            ScatterData.update(Vue.prototype.scatterData).then(saved => {
-                Vue.prototype.scatterData.data.keychain.wallets = saved.data.keychain.wallets.map(x => Wallet.fromJson(x));
+            ScatterData.update(scatter).then(saved => {
+                Vue.prototype.scatterData = ScatterData.fromJson(saved);
                 this.wallets = Vue.prototype.scatterData.data.keychain.wallets;
-
-                this.openedWallet = this.wallets.filter(x => x.name === this.openedWallet.name)[0];
+                this.openedWallet = this.wallets.find(x => x.lastOpened);
                 this.openedWallet.stopEditing();
             })
 
 
+        },
+        cancelEditing:function(){
+            //TODO: Error checking
+            if(!this.wallets.length) {
+                alert("You need at least one wallet");
+                return false;
+            }
+
+            if(this.openedWallet.uniqueKey !== this.wallets.find(x => x.lastOpened).uniqueKey) this.openedWallet = this.wallets.find(x => x.lastOpened);
+            else this.openedWallet = this.preEditedWallet;
         }
     }
 

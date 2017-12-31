@@ -9,7 +9,7 @@ module.exports = `
             <section class="dup">
                 <figure class="lock" v-on:click="lock"><i class="fa fa-unlock-alt"></i></figure>
                 <figure class="edit" v-on:click="edit"><i class="fa fa-pencil"></i></figure>
-                <figure class="wallet-name">{{openedWallet.name}}</figure>
+                <figure class="wallet-name" v-on:click="toggleSelectingWallet">{{openedWallet.name}}</figure>
                 <figure class="wallet-keys">{{openedWallet.keyPairs.length}} keys</figure>
                 <section class="send-recv">
                     <figure>Send</figure>
@@ -23,25 +23,56 @@ module.exports = `
                     <p><b>USD</b><span>{{openedWallet.balance * openedWallet.lastKnownConversionRate}}</span></p>
                 </section>
                 <section class="fifty">
-                    <section class="list-switch" :class="{'active':listState==='history'}" v-on:click="toggleListState"><i class="fa fa-history"></i></section>
-                    <section class="list-switch" :class="{'active':listState==='domains'}" v-on:click="toggleListState"><i class="fa fa-globe"></i></section>
+                    <section class="list-switch" :class="{'active':listState==='history'}" v-on:click="selectListState('history')"><i class="fa fa-history"></i></section>
+                    <section class="list-switch" :class="{'active':listState==='domains'}" v-on:click="selectListState('domains')"><i class="fa fa-globe"></i></section>
                 </section>
             </section>
         </section>
         
         
-        <section class="data-list">
-            <section class="item event" v-for="listItem in listItems">
-                <figure class="fifty">
-                    <figure class="title">May 22nd, 2017</figure>
-                    <figure class="sub-title">forseen.com</figure>
-                </figure>
-                <figure class="fifty">
-                    <figure class="coin">EOS</figure>
-                    <figure class="amount">0.004854</figure>
-                </figure>
+        <section class="data-list" v-if="!selectingWallet()">
+        
+            <section v-if="listItems.length">
+                <section class="item event" v-for="listItem in listItems">
+                    <figure class="fifty">
+                        <figure class="title">May 22nd, 2017</figure>
+                        <figure class="sub-title">forseen.com</figure>
+                    </figure>
+                    <figure class="fifty">
+                        <figure class="coin">EOS</figure>
+                        <figure class="amount">0.004854</figure>
+                    </figure>
+                </section>
+            </section>
+        
+            <section v-if="!listItems.length">
+                <section class="no-items" v-if="listState==='history'">
+                    <figure class="title">No transactions could be found for this wallet..</figure>
+                    <figure class="sub-title">Send tokens to a key in this account.</figure>
+                </section>
+                <section class="no-items" v-if="listState==='domains'">
+                    <figure class="title">You have not granted any domains access to any wallets.</figure>
+                    <figure class="sub-title">Once you start browsing websites integrated with Scatter you will be able to moderate their access to your wallets.</figure>
+                </section>
+            </section>
+        
+            
+        </section>
+        
+        <section class="data-list" v-if="selectingWallet()">
+            <section class="item wallet" v-on:click="createNewWallet">
+                <figure class="name">Create a new wallet</figure>
+                <figure class="key">You can have multiple wallets, each with multiple keys and authorities.</figure>                
+            </section>
+            <section class="item wallet" v-on:click="selectWallet(wallet.name)" v-for="wallet in wallets">
+                <figure class="keys"><i class="fa fa-key"></i>{{wallet.keyPairs.length}}</figure>
+                <figure class="name">{{wallet.name}} </figure>           
             </section>
         </section>
+        
+        
+        
+        
     </section>
     
     
@@ -56,7 +87,7 @@ module.exports = `
             </section>
             
             <section class="ddown editing">
-                <scatter-button text="Cancel" is-red="true" is-half="true" v-on:clicked="cancel"></scatter-button>
+                <scatter-button text="Cancel" is-red="true" is-half="true" v-on:clicked="cancelEditing"></scatter-button>
                 <scatter-button text="Save" is-half="true" v-on:clicked="saveWallet"></scatter-button>
             </section>
         </section>

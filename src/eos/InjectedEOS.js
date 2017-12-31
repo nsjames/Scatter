@@ -1,4 +1,5 @@
 import { EncryptedStream } from '../streams/EncryptedStream';
+import EOSMessageTypes from './EOSMessageTypes';
 
 
 let stream = new WeakMap();
@@ -9,9 +10,16 @@ export class InjectedEOS {
         stream.sync(this.ext, handshake)
     }
 
+    getPublicKey(){
+        return new Promise((resolve, reject) => {
+            stream.send({type:EOSMessageTypes.GET_PUBLIC_KEY}, this.ext);
+            resolve(true);
+        });
+    }
+
     sign(msg){
         return new Promise((resolve, reject) => {
-            stream.send({type:'sign', msg}, this.ext)
+            stream.send({type:EOSMessageTypes.SIGN_MSG, msg}, this.ext);
             resolve(true);
         });
 

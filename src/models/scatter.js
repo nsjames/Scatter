@@ -27,8 +27,9 @@ export class ScatterData {
 		if(json.hasOwnProperty('data')) p.data = Data.fromJson(json.data);
 		return p;
 	}
-	lock(){ this.data.locked = true; }
-    unlock(){ this.data.locked = false; }
+	lock(){ this.data.keychain.locked = true; }
+    unlock(){ this.data.keychain.locked = false; }
+    clone(){ return ScatterData.fromJson(Object.assign({}, this)) }
 
     static update(scatter){
         return new Promise((resolve, reject) => {
@@ -64,7 +65,6 @@ export class Data {
         this.keychain = null;
         this.whitelist = null;
         this.blacklist = null;
-        this.locked = null; //TODO: Change this from a property here to a method inside of the BG script ( using seed existence verification )
         this.hash = "";
 	}
 
@@ -74,7 +74,6 @@ export class Data {
 		p.keychain = Keychain.placeholder();
 		p.whitelist = [];
 		p.blacklist = [];
-		p.locked = true;
 		p.hash = '';
 		return p;
 	}

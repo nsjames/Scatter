@@ -6,11 +6,13 @@ export class Keychain {
 
 	constructor(){
         this.wallets = null;
+        this.locked = null;
 	}
 
 	static placeholder() {
 		let p = new Keychain();
 		p.wallets = [];
+        p.locked = true;
 		return p;
 	}
 
@@ -21,4 +23,6 @@ export class Keychain {
             return p;
         } else return jsonOrEncryptedString;
 	}
+
+	getOpenWallet(){ return this.wallets.find(x => x.lastOpened) || Wallet.newWallet(); }
 }

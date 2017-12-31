@@ -1,5 +1,6 @@
 import {KeyPair} from "../models/keypair";
 import {WaterfallEncryption} from '../cryptography/WaterfallEncryption';
+import {RandomKeyGen} from '../cryptography/RandomKeyGen';
 import {AES} from '../cryptography/AES';
 
 export class Wallet {
@@ -11,6 +12,8 @@ export class Wallet {
         this.lastKnownConversionRate = null;
         this.whitelist = null;
         this.default = null;
+        this.lastOpened = null;
+        this.uniqueKey = null;
 
         this.editing = false;
 	}
@@ -23,6 +26,8 @@ export class Wallet {
 		p.lastKnownConversionRate = 0.00;
 		p.whitelist = [];
 		p.default = '';
+		p.lastOpened = false;
+		p.uniqueKey = '';
 		return p;
 	}
 
@@ -37,6 +42,8 @@ export class Wallet {
 		p.name = '';
 		p.editing = true;
         p.name = '';
+        p.lastOpened = true;
+        p.uniqueKey = RandomKeyGen.generate(24);
 		return p;
 	}
 

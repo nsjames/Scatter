@@ -18,6 +18,7 @@ export class Background {
             switch(request.msg){
                 case 'seed': Background.setSeed(sendResponse, request.seed); break;
                 case 'load': Background.load(sendResponse); break;
+                case 'open': Background.open(sendResponse, request.name); break;
                 case 'lock': Background.lock(sendResponse); break;
                 case 'locked?': Background.isLocked(sendResponse); break;
                 case 'unlock': Background.unlock(sendResponse); break;
@@ -34,6 +35,14 @@ export class Background {
     static load(sendResponse){
         StorageService.get().then(scatter => {
             sendResponse(scatter)
+        })
+    }
+
+    static open(sendResponse, name){
+        StorageService.get().then(scatter => {
+            scatter.data.keychain.wallets.map(x => x.lastOpened = false);
+            scatter.data.keychain.wallets.find(x => x.name === name).lastOpened = true;
+            sendResponse(scatter);
         })
     }
 
@@ -71,9 +80,6 @@ export class Background {
     }
 
     static update(sendResponse, scatter){
-        // StorageService.get().then(persistent => {
-        //
-        // })
         //TODO: Only update editable things, to preserve integrity
         scatter = ScatterData.fromJson(scatter);
         scatter.data.keychain.wallets.map(x => {
