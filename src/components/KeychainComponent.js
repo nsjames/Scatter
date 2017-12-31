@@ -48,7 +48,6 @@ const KeychainComponent = {
                     return false;
                 }
                 let decryptedWallet = response.data.keychain.wallets.find(x => x.name === this.openedWallet.name);
-                console.log(decryptedWallet);
                 this.openedWallet.keyPairs = decryptedWallet.keyPairs.map(x => KeyPair.fromJson(x));
                 this.openedWallet.edit();
             })
