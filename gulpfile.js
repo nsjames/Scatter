@@ -44,7 +44,7 @@ gulp.task('watch', gulp.series('build', 'sass:build', gulp.parallel('watch-after
 gulp.task('run', gulp.series('watch'));
 
 gulp.task('zip-dev', () =>
-    gulp.src('./build/*')
+    gulp.src('./build/**/*')
         .pipe(zip('dev-build.zip'))
         .pipe(gulp.dest('./'))
 );
