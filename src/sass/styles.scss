@@ -21,7 +21,7 @@ div, figure, section, nav, article {
   left:0;
   right:0;
   z-index: -1;
-  transition:height 0.5s ease;
+  transition:height 0.3s ease-in;
 }
 
 .bottom {
@@ -32,7 +32,7 @@ div, figure, section, nav, article {
   left:0;
   right:0;
   z-index: -1;
-  transition:height 0.5s ease;
+  transition:height 0.3s ease-in;
   box-shadow:inset 0 20px 50px -20px rgba(0,0,0,0.02), inset 0 1px 2px rgba(0,0,0,0.02), inset 0 10px 70px -30px rgba(0, 0, 0, 0.25);
 }
 
@@ -53,19 +53,54 @@ footer {
 
 /** ANIMATIONS ------------------------------------*/
 
-// Vue builtins
-.fade-enter-active, .fade-leave-active {
-  transition-property: opacity, top;
-  transition-duration: .25s;
-}
+// Vue
+//.fade-enter-active, .fade-leave-active {
+//  transition-property: opacity;
+//  transition-duration: .25s;
+//}
+//
+//.fade-enter-active {
+//  transition-delay: .25s;
+//}
+//
+//.fade-enter, .fade-leave-active {
+//  opacity: 0;
+//}
 
 .fade-enter-active {
-  transition-delay: .25s;
+  position:absolute;
+  left:0; right:0;
+  z-index:-1;
+  animation: enter .8s;
 }
 
-.fade-enter, .fade-leave-active {
-  opacity: 0;
+.fade-leave-active {
+  position:absolute;
+  left:0; right:0;
+  z-index:-1;
+  animation: leave .8s;
 }
+
+  @keyframes enter {
+    0% {
+      opacity: 0;
+      transform: translateY(360px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0px);
+    }
+  }
+  @keyframes leave {
+    0% {
+      opacity: 1;
+      transform: translateY(0px);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(360px);
+    }
+  }
 
 
 @keyframes spin {
