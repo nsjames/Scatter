@@ -7,7 +7,7 @@ const sass = require('gulp-sass');
 const del = require('del');
 const vueify = require('gulp-vueify2');
 const bro = require('gulp-bro');
-
+const zip = require('gulp-zip');
 
 
 // Static assets and html
@@ -43,6 +43,11 @@ gulp.task('watch', gulp.series('build', 'sass:build', gulp.parallel('watch-after
 // This is what should be used to compile and watch the extension for development.
 gulp.task('run', gulp.series('watch'));
 
+gulp.task('zip-dev', () =>
+    gulp.src('./build/*')
+        .pipe(zip('dev-build.zip'))
+        .pipe(gulp.dest('./'))
+);
 
 
 // Helper methods

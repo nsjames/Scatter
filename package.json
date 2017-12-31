@@ -19,6 +19,7 @@
     "gulp-util": "^3.0.8",
     "gulp-vueify2": "0.0.3",
     "gulp-watch": "^4.3.11",
+    "gulp-zip": "^4.1.0",
     "watchify": "^3.9.0"
   },
   "dependencies": {

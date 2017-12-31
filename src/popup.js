@@ -13,6 +13,7 @@ export class Popup {
 
     constructor(){
         LocalStream.send({ msg: "load" }).then(scatter => {
+            //TODO: For the love of god, take me out of Vue's window scope [ I am insecure ] [ and not like.. teenage angst insecure, like Deebo has the keys to your house insecure ]
             Vue.prototype.scatterData = ScatterData.fromJson(scatter);
             LocalStream.send({msg:'locked?'}).then(isLocked => {
                 Vue.prototype.scatterData.data.locked = isLocked;
