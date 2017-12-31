@@ -5,6 +5,8 @@ import {EOSKeygen} from '../cryptography/EOSKeygen';
 import {PasswordHasher} from '../cryptography/PasswordHasher'
 import {KeyPair} from '../models/keypair'
 import {KeyPairAccount} from '../models/keypair-account'
+import {Keychain} from '../models/keychain';
+import {EOSService} from '../services/EOSService'
 
 
 const KeychainComponent = {
@@ -28,9 +30,7 @@ const KeychainComponent = {
 
         toggleListState:function(){ this.listState = this.listState === 'history' ? 'domains' : 'history' },
         lock:function(){
-            console.log("Locking");
             LocalStream.send({msg:'lock'}).then(locked => {
-                console.log("LOCKED?: ", locked)
                 Vue.prototype.scatterData = ScatterData.fromJson(locked);
                 this.$router.push({name:'auth'});
             })
@@ -41,7 +41,18 @@ const KeychainComponent = {
         // -----------------------------------------------------
         edit:function(){
             this.preEditedWallet = this.openedWallet.clone();
-            this.openedWallet.edit();
+            LocalStream.send({msg:'keychain'}).then(response => {
+                //TODO: Error handling
+                if(!response) {
+                    console.log("There was an issue decrypting the wallet")
+                    return false;
+                }
+                let decryptedWallet = response.data.keychain.wallets.find(x => x.name === this.openedWallet.name);
+                console.log(decryptedWallet);
+                this.openedWallet.keyPairs = decryptedWallet.keyPairs.map(x => KeyPair.fromJson(x));
+                this.openedWallet.edit();
+            })
+
         },
         cancel:function(){
             this.openedWallet = this.preEditedWallet;
@@ -61,9 +72,12 @@ const KeychainComponent = {
             }
 
             // TODO: Get accounts..
+            EOSService.getAccountsFromPublicKey(keyPair.publicKey).then(keyPairAccounts => {
+                keyPair.setAccounts(keyPairAccounts);
+                this.openedWallet.keyPairs.push(keyPair);
+                this.newKeyPair = KeyPair.placeholder();
+            })
 
-            this.openedWallet.keyPairs.push(keyPair);
-            this.newKeyPair = KeyPair.placeholder();
         },
 
         generateNewKey:function(){
@@ -95,7 +109,6 @@ const KeychainComponent = {
             this.wallets.push(this.openedWallet);
 
             ScatterData.update(Vue.prototype.scatterData).then(saved => {
-                console.log("Saved: ", saved)
                 this.wallets = Vue.prototype.scatterData.data.keychain.wallets;
                 this.openedWallet = this.wallets.filter(x => x.name === this.openedWallet.name)[0];
                 this.openedWallet.stopEditing();

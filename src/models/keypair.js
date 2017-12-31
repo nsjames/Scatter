@@ -28,11 +28,7 @@ export class KeyPair {
 	}
 
     getHighestAuthority(){
-		let sorted = Object.assign([], this.accounts).sort((a,b) => {
-            let auth = a.authority.toLowerCase();
-            return Authorities[auth] || 0;
-        })
-		return (sorted.length) ? sorted[0].authority : 'No account found';
+		return (this.accounts.length) ? this.accounts[0].authority.toLowerCase() : 'No account found';
 	}
 
 	hasOwnerAuthority(){
@@ -42,5 +38,12 @@ export class KeyPair {
 	remove(){ this.removed = true; }
 	revertRemoval(){ this.removed = false; }
 	clone(){ return KeyPair.fromJson(Object.assign({}, this)) }
+	setAccounts(accounts){ this.accounts = this.sortAccounts(accounts); }
+
+	sortAccounts(accounts){
+		return Object.assign([], accounts).sort((a,b) => {
+            return (Authorities[a.authority.toLowerCase()] || 0) < Authorities[b.authority.toLowerCase()] || 0;
+        });
+	}
 }
-const Authorities = [{owner:1, active:2}]
+const Authorities = {owner:2, active:1};

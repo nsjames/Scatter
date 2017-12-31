@@ -13,9 +13,12 @@ export class Popup {
 
     constructor(){
         LocalStream.send({ msg: "load" }).then(scatter => {
-            console.log("Loaded: ", scatter)
             Vue.prototype.scatterData = ScatterData.fromJson(scatter);
-            this.setupApp();
+            LocalStream.send({msg:'locked?'}).then(isLocked => {
+                Vue.prototype.scatterData.data.locked = isLocked;
+                this.setupApp();
+            })
+
         });
     }
 
@@ -39,7 +42,6 @@ export class Popup {
     setupRouting(){
         this.router = new VueRouter({ routes:routes });
         this.router.beforeEach((to, from, next) => {
-            console.log(this.router.currentRoute);
             switch(to.name){
                 case 'auth': this.beforeAuth(next); break;
                 case 'keychain': this.beforeKeychain(next); break;
@@ -67,7 +69,6 @@ export class Popup {
     }
 
     beforeSettings(next){
-        console.log("SETTINGS")
         next()
     }
 

@@ -16,11 +16,12 @@ export class Background {
     constructor(){
         LocalStream.watch((request, sendResponse) => {
             switch(request.msg){
-                case 'seed': Background.seed(sendResponse, request.seed); break;
+                case 'seed': Background.setSeed(sendResponse, request.seed); break;
                 case 'load': Background.load(sendResponse); break;
                 case 'lock': Background.lock(sendResponse); break;
+                case 'locked?': Background.isLocked(sendResponse); break;
                 case 'unlock': Background.unlock(sendResponse); break;
-                case 'keychain': Background.unlock(sendResponse); break;
+                case 'keychain': Background.keychain(sendResponse); break;
                 case 'update': Background.update(sendResponse, request.scatter); break;
                 case 'reset': chrome.storage.local.clear(); sendResponse({}); break;
                 // default: sendResponse(null);
@@ -28,7 +29,7 @@ export class Background {
         })
     }
 
-    static seed(sendResponse, s){ seed = s; sendResponse(); }
+    static setSeed(sendResponse, s){ seed = s; sendResponse(); }
 
     static load(sendResponse){
         StorageService.get().then(scatter => {
@@ -38,20 +39,27 @@ export class Background {
 
     static unlock(sendResponse){
         StorageService.get().then(scatter => {
-            scatter.unlock(seed);
+            scatter.unlock();
             StorageService.save(scatter).then(saved => {
                 sendResponse(scatter);
             })
         })
     }
+
     static lock(sendResponse){
         StorageService.get().then(scatter => {
-            scatter.lock(seed);
+            scatter.lock();
             StorageService.save(scatter).then(saved => {
+                seed = '';
                 sendResponse(scatter);
             })
         })
     }
+
+    static isLocked(sendResponse){
+        sendResponse(seed.length === 0)
+    }
+
     static keychain(sendResponse){
         StorageService.get().then(scatter => {
             scatter = ScatterData.fromJson(scatter);

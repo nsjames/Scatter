@@ -50,13 +50,13 @@ const AuthComponent = {
             if(!PasswordHasher.validate(this.password, Vue.prototype.scatterData.data.hash)) return false;
 
             else {
-                LocalStream.send({msg:'unlock'}).then(unlocked => {
-                    console.log("MESAGE BACK: ", unlocked)
-                    Vue.prototype.scatterData = ScatterData.fromJson(unlocked);
-                    this.$router.push('keychain');
-                    console.log("Should unlock")
-                })
-
+                let [mnemonic, seed] = Mnemonic.generateMnemonic(this.password);
+                LocalStream.send({msg:'seed', seed}).then(res => {
+                    LocalStream.send({msg:'unlock'}).then(unlocked => {
+                        Vue.prototype.scatterData = ScatterData.fromJson(unlocked);
+                        this.$router.push('keychain');
+                    })
+                });
             }
 
         },

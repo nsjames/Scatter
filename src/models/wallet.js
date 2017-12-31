@@ -53,12 +53,16 @@ export class Wallet {
 		if(removedKeys.indexOf(this.default) > -1) this.default = '';
         if(!this.default.length) this.default = this.keyPairs[0].publicKey;
 	}
+
+	//TODO: Change back to waterfall
 	encrypt(passkey){
-		this.keyPairs.map(x => x.privateKey = WaterfallEncryption.encrypt(x.privateKey, passkey, AES.encrypt))
+		this.keyPairs.map(x => x.privateKey = AES.encrypt(x.privateKey, passkey))
+		// this.keyPairs.map(x => x.privateKey = WaterfallEncryption.encrypt(x.privateKey, passkey, AES.encrypt))
         this.editing = false;
 	}
 	decrypt(passkey){
-		this.keyPairs.map(x => x.privateKey = WaterfallEncryption.decrypt(x.privateKey, passkey, AES.decrypt))
+		this.keyPairs.map(x => x.privateKey = AES.decrypt(x.privateKey, passkey))
+		// this.keyPairs.map(x => x.privateKey = WaterfallEncryption.decrypt(x.privateKey, passkey, AES.decrypt))
 	}
 
 }
