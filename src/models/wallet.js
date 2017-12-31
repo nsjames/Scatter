@@ -40,9 +40,8 @@ export class Wallet {
 		return p;
 	}
 
-	//TODO: I hate the Vue globals are inside the models, find a way to move them.
-	edit(){ this.editing = true; Vue.prototype.hideSettingsButton = true; }
-	stopEditing(){ this.editing = false; Vue.prototype.hideSettingsButton = false; }
+	edit(){ this.editing = true; }
+	stopEditing(){ this.editing = false; }
 	clone(){ return Wallet.fromJson(Object.assign({}, this)); }
 	getDefaultKeyPair(){ return (this.default.length) ? this.keyPairs.filter(x => x.publicKey === this.default)[0] : this.keyPairs[0]; }
 	setDefaultKeyPair(keyPair){ this.default = keyPair.publicKey; }
