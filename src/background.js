@@ -1,26 +1,27 @@
 import {StorageService} from './services/StorageService'
-import {ScatterData, LocalStream, WaterfallEncryption, AES} from 'scattermodels'
+import {ScatterData, LocalStream, WaterfallEncryption, AES, Message, MessageTypes} from 'scattermodels'
+import {InternalMessageTypes} from './messages/InternalMessageTypes';
 
-// Not actually sure if I need you yet bro.
-let scatterData = new WeakMap();
-let localStream = new WeakMap();
+// Does not persist past sessions intentionally.
 let seed = '';
 
-//TODO: Fill with genesis data
-let genesis = {};
+
+
 export class Background {
 
     constructor(){
         LocalStream.watch((request, sendResponse) => {
-            switch(request.msg){
-                case 'seed': Background.setSeed(sendResponse, request.seed); break;
-                case 'load': Background.load(sendResponse); break;
-                case 'open': Background.open(sendResponse, request.name); break;
-                case 'lock': Background.lock(sendResponse); break;
-                case 'locked?': Background.isLocked(sendResponse); break;
-                case 'unlock': Background.unlock(sendResponse); break;
-                case 'keychain': Background.keychain(sendResponse); break;
-                case 'update': Background.update(sendResponse, request.scatter); break;
+            console.log(request);
+            let message = Message.fromJson(request);
+            switch(request.type){
+                case InternalMessageTypes.SEED: Background.setSeed(sendResponse, request.payload); break;
+                case InternalMessageTypes.LOAD: Background.load(sendResponse); break;
+                case InternalMessageTypes.OPEN: Background.open(sendResponse, request.payload); break;
+                case InternalMessageTypes.LOCK: Background.lock(sendResponse); break;
+                case InternalMessageTypes.IS_LOCKED: Background.isLocked(sendResponse); break;
+                case InternalMessageTypes.UNLOCK: Background.unlock(sendResponse); break;
+                case InternalMessageTypes.KEYCHAIN: Background.keychain(sendResponse); break;
+                case InternalMessageTypes.UPDATE: Background.update(sendResponse, request.payload); break;
                 case 'reset': chrome.storage.local.clear(); sendResponse({}); break;
                 // default: sendResponse(null);
             }

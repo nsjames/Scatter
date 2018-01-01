@@ -152,9 +152,10 @@
 </template>
 <script>
     import Vue from 'vue';
-    import {KeyPair, Wallet, ScatterData, LocalStream} from 'scattermodels'
+    import {KeyPair, Wallet, ScatterData, LocalStream, Message} from 'scattermodels'
     import {EOSKeygen} from '../cryptography/EOSKeygen'
     import {EOSService} from '../services/EOSService'
+    import {InternalMessageTypes} from '../messages/InternalMessageTypes';
 
     export default {
         data() {
@@ -175,7 +176,7 @@
             setData:function(obj){ console.log("Setting data: ", obj); },
 
             lock:function(){
-                LocalStream.send({msg:'lock'}).then(locked => {
+                LocalStream.send(Message.signal(InternalMessageTypes.LOCK)).then(locked => {
                     Vue.prototype.scatterData = ScatterData.fromJson(locked);
                     this.$router.push({name:'auth'});
                 })
@@ -186,7 +187,7 @@
             toggleSelectingWallet:function(){ this.selectListState(this.selectingWallet() ? this.listStates.HISTORY : this.listStates.CHOOSE_WALLET); },
             selectWallet:function(name){
                 console.log(`Opening wallet ${name}`)
-                LocalStream.send({msg:'open', name}).then(response => {
+                LocalStream.send(Message.payload(InternalMessageTypes.OPEN, name)).then(response => {
                     console.log("Response?: ", response)
                     //TODO: Error handling
                     if(!response) {
@@ -211,7 +212,7 @@
             // -----------------------------------------------------
             edit:function(){
                 this.preEditedWallet = this.openedWallet.clone();
-                LocalStream.send({msg:'keychain'}).then(response => {
+                LocalStream.send(Message.signalr(InternalMessageTypes.KEYCHAIN)).then(response => {
                     //TODO: Error handling
                     if(!response) {
                         console.log("There was an issue decrypting the wallet")

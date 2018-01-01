@@ -26,10 +26,11 @@
 </template>
 <script>
     import Vue from 'vue';
-    import {LocalStream, ScatterData} from 'scattermodels'
+    import {LocalStream, ScatterData, Message} from 'scattermodels'
     import {Mnemonic} from '../cryptography/Mnemonic';
     import {PasswordHasher} from '../cryptography/PasswordHasher'
     import {EOSKeygen} from '../cryptography/EOSKeygen'
+    import {InternalMessageTypes} from '../messages/InternalMessageTypes';
 
     export default {
         data() {
@@ -58,7 +59,7 @@
                 Vue.prototype.scatterData.data.hash = PasswordHasher.hash(this.password);
                 this.password = '';
 
-                LocalStream.send({msg:'seed', seed}).then(res => {
+                LocalStream.send(Message.payload(InternalMessageTypes.SEED, seed)).then(res => {
                     ScatterData.update(Vue.prototype.scatterData).then(saved => {
                         Vue.prototype.scatterData = ScatterData.fromJson(saved);
                         //TODO: Display mnemonic instead before routing to 'keychain'
@@ -74,15 +75,13 @@
                 if(!this.password.length) return false;
                 if(!PasswordHasher.validate(this.password, Vue.prototype.scatterData.data.hash)) return false;
 
-                else {
-                    let [mnemonic, seed] = Mnemonic.generateMnemonic(this.password);
-                    LocalStream.send({msg:'seed', seed}).then(res => {
-                        LocalStream.send({msg:'unlock'}).then(unlocked => {
-                            Vue.prototype.scatterData = ScatterData.fromJson(unlocked);
-                            this.$router.push('keychain');
-                        })
-                    });
-                }
+                let [mnemonic, seed] = Mnemonic.generateMnemonic(this.password);
+                LocalStream.send(Message.payload(InternalMessageTypes.SEED, seed)).then(res => {
+                    LocalStream.send(Message.signal(InternalMessageTypes.UNLOCK)).then(unlocked => {
+                        Vue.prototype.scatterData = ScatterData.fromJson(unlocked);
+                        this.$router.push('keychain');
+                    })
+                });
 
             },
             importKeychainFromJson:function(){},
@@ -90,9 +89,9 @@
 
             //FOR TESTING ONLY, REMOVE FOR PRODUCTION
             reset:function(){
-                chrome.runtime.sendMessage({ msg: "reset" }, (response) => {
-                    Vue.prototype.scatterData = ScatterData.fromJson(response);
-                });
+//                chrome.runtime.sendMessage({ msg: "reset" }, (response) => {
+//                    Vue.prototype.scatterData = ScatterData.fromJson(response);
+//                });
             },
             log:function(msg){ console.log("MSG", msg) }
         }

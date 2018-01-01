@@ -1,12 +1,13 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import {ScatterData, LocalStream} from 'scattermodels'
+import {ScatterData, LocalStream, Message} from 'scattermodels'
 import AuthComponent from './components/AuthComponent.vue'
 import KeychainComponent from './components/KeychainComponent.vue'
 import SettingsComponent from './components/SettingsComponent.vue'
 import ButtonComponent from './components/ButtonComponent.vue'
 import InputComponent from './components/InputComponent.vue'
 import SelectComponent from './components/SelectComponent.vue'
+import {InternalMessageTypes} from './messages/InternalMessageTypes';
 
 Vue.config.productionTip = false
 Vue.use(VueRouter)
@@ -19,10 +20,10 @@ const routes = [
     { path: '/settings', name:'settings', component: SettingsComponent}
 ];
 
-LocalStream.send({ msg: "load" }).then(scatter => {
+LocalStream.send(Message.signal(InternalMessageTypes.LOAD)).then(scatter => {
     //TODO: For the love of god, take me out of Vue's window scope [ I am insecure ] [ and not like.. teenage angst insecure, like Deebo has the keys to your house insecure ]
     Vue.prototype.scatterData = ScatterData.fromJson(scatter);
-    LocalStream.send({msg:'locked?'}).then(isLocked => {
+    LocalStream.send(Message.signal(InternalMessageTypes.IS_LOCKED)).then(isLocked => {
         Vue.prototype.scatterData.data.keychain.locked = isLocked;
         setupApp();
     })
