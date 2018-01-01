@@ -24,7 +24,8 @@
     "style-loader": "^0.19.1",
     "vue-loader": "^13.6.2",
     "vue-template-compiler": "^2.5.13",
-    "webpack": "^3.10.0"
+    "webpack": "^3.10.0",
+    "zip-webpack-plugin": "^2.1.0"
   },
   "dependencies": {
     "bip39": "^2.4.0",

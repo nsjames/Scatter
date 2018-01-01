@@ -1,6 +1,7 @@
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const IgnoreEmitPlugin = require('ignore-emit-webpack-plugin');
+const ZipPlugin = require('zip-webpack-plugin');
 
 module.exports = {
     entry: {
@@ -33,7 +34,16 @@ module.exports = {
     },
     plugins: [
         new ExtractTextPlugin({ filename: '[name]', allChunks: true, }),
-        new IgnoreEmitPlugin(/\.omit$/)
+        new IgnoreEmitPlugin(/\.omit$/),
+        new ZipPlugin({
+            // OPTIONAL: defaults to the Webpack output path (above)
+            // can be relative (to Webpack output path) or absolute
+            path: '../',
+
+            // OPTIONAL: defaults to the Webpack output filename (above) or,
+            // if not present, the basename of the path
+            filename: 'scatter.zip',
+        })
     ],
     stats: { colors: true },
     devtool: 'source-map',

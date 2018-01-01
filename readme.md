@@ -19,7 +19,7 @@ I've set up a [Trello board](https://trello.com/b/lP7Sj6eA) for tracking issues 
 
 --------------
 
-### If you would like to just download and install the plugin's current build [you can do so here](https://github.com/nsjames/Scatter/raw/master/dev-build.zip)
+### If you would like to just download and install the plugin's current build [you can do so here](https://github.com/nsjames/Scatter/raw/master/scatter.zip)
 
 **Setting it up is simple.**
 * Extract the contents of the zip-file to somewhere on your computer
@@ -30,17 +30,13 @@ I've set up a [Trello board](https://trello.com/b/lP7Sj6eA) for tracking issues 
 
 
 
-### Dependencies:
-`npm i -g gulp-cli`
+### Building:
 
+_Webpack is required globally `npm i -g webpack`_
 
-`npm i babel-preset-es2015 babel-preset-stage-2`
+Building is now handled by webpack. To build into the `./build` directory simply use `npm run dev` or `webpack`.
 
-
-To build into the /build/ directory run `gulp run`
-_( watchers are kind of screwed up at the moment, you might have to use `gulp build` instead )_
-
-Then set your load the unpacked extension in chrome with the method above.
+Then load the unpacked extension in chrome with the method described above.
 
 ------
 
