@@ -88,7 +88,7 @@ function afterLoad(){
     // If permissions have been previously granted the user will
     // not be prompted, instead the private key they associated with
     // the website will be provided as authentication.
-    this.scatter.requestPermissions().then(privateKey => {
+    scatter.requestPermissions().then(privateKey => {
         //...
     }).catch(error => {
         // User rejected the request.
@@ -96,7 +96,7 @@ function afterLoad(){
     
     // To further authenticate a user you can send a random message to be
     // verified against their private key using the public key you have on file.
-    this.scatter.proveIdentity(publicKey).then(verified => {
+    scatter.proveIdentity(publicKey).then(verified => {
         //...
     });
     
