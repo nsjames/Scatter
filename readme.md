@@ -9,15 +9,12 @@ Streams from the website to the extension are encrypted with a randomized key fo
 
 
 
----
 
-
-### Trello board.
+## Trello board.
 
 I've set up a [Trello board](https://trello.com/b/lP7Sj6eA) for tracking issues and feature requests which is open to the public.
 **Please be kind to the board.**
 
---------------
 
 ### If you would like to just download and install the plugin's current build [you can do so here](https://github.com/nsjames/Scatter/raw/master/scatter.zip)
 
@@ -26,19 +23,31 @@ I've set up a [Trello board](https://trello.com/b/lP7Sj6eA) for tracking issues 
 * Open up `chrome://extensions/` in your browser
 * Click the `Load unpacked extension...` button and point it at the folder.
 
--------
 
 
 
-### Building:
+## Pre-requisites:
 
-_Webpack is required globally `npm i -g webpack`_
+* Webpack is required globally `npm i -g webpack`
+
+This package requires an `npm link` from another package called **Scatterdapp** for the moment until it is hosted. 
+( _Scatterdapp is the front-end wrapper around scatter which gets injected into web pages_ )
+
+* Make a directory somewhere called `/scatterdapp/`
+* Do `git clone https://github.com/nsjames/Scatterdapp.git` inside the directory
+* While still inside of the `/scatterdapp/` directory do `npm link`
+* Then go to wherever you cloned **Scatter** to and do `npm link scatterdapp`
+
+
+## Building:
 
 Building is now handled by webpack. To build into the `./build` directory simply use `npm run dev` or `webpack`.
 
 Then load the unpacked extension in chrome with the method described above.
 
-------
+
+
+
 
 ### Usage example for the interacting webpage
 

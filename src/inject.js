@@ -1,7 +1,7 @@
-import { InjectedEOS } from './eos/InjectedEOS'
 import {RandomKeyGen} from './cryptography/RandomKeyGen';
+import Scatterdapp from 'scatterdapp';
 
-let eos = new InjectedEOS(RandomKeyGen.generate(12));
+let eos = new Scatterdapp(RandomKeyGen.generate(12));
 window.scatter = eos;
 document.dispatchEvent(new CustomEvent("scatterLoaded", {detail:{type:'loaded'}}));
 

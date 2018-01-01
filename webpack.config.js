@@ -13,12 +13,16 @@ module.exports = {
         'index.omit': path.resolve(__dirname, './src/index.html'),
         'icon.omit': path.resolve(__dirname, './src/icon.png'),
 
-        // There's a problem with this
+        // TODO There's a problem with this, make sure manifest.json is in /build/ dir manually
         'manifest.omit': path.resolve(__dirname, './src/manifest.json'),
     },
     output: {
         path: path.resolve(__dirname, './build'),
         filename: '[name]'
+    },
+    resolve: {
+        alias: { vue: 'vue/dist/vue.js', scatterdapp: path.join(__dirname, "node_modules/scatterdapp") },
+        modules: [ path.join(__dirname, "node_modules") ]
     },
     module: {
         loaders: [
@@ -27,29 +31,14 @@ module.exports = {
         rules:[
             { test: /\.(sass|scss)$/, loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader']) },
             { test: /\.(html|png)$/, loader: 'file-loader', options: { name: '[name].[ext]' } },
-            { test: /\.vue$/, loader: 'vue-loader', options: { loaders: { js: 'babel-loader' }
-                }
-            }
+            { test: /\.vue$/, loader: 'vue-loader', options: { loaders: { js: 'babel-loader' } } }
         ]
     },
     plugins: [
         new ExtractTextPlugin({ filename: '[name]', allChunks: true, }),
         new IgnoreEmitPlugin(/\.omit$/),
-        new ZipPlugin({
-            // OPTIONAL: defaults to the Webpack output path (above)
-            // can be relative (to Webpack output path) or absolute
-            path: '../',
-
-            // OPTIONAL: defaults to the Webpack output filename (above) or,
-            // if not present, the basename of the path
-            filename: 'scatter.zip',
-        })
+        new ZipPlugin({ path: '../', filename: 'scatter.zip', })
     ],
     stats: { colors: true },
-    devtool: 'source-map',
-    resolve: {
-        alias: {
-            vue: 'vue/dist/vue.js',
-        }
-    }
+    devtool: 'source-map'
 }

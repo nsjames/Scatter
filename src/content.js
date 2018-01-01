@@ -2,7 +2,7 @@ import { EncryptedStream } from './streams/EncryptedStream';
 import { LocalStream } from './streams/LocalStream';
 import {RandomKeyGen} from './cryptography/RandomKeyGen';
 import {AES} from './cryptography/AES';
-import EOSMessageTypes from './eos/EOSMessageTypes';
+import {EOSMessageTypes} from 'scatterdapp';
 
 let webStream = new WeakMap();
 let internalStream = new WeakMap();
