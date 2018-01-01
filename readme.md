@@ -65,43 +65,44 @@ If you want typings and code completion for the web api you can head over to [Sc
 document.addEventListener('scatterLoaded', afterLoad)
 ---------------------------------------------------------
 function afterLoad(){
-    
     var scatter = window.scatter;
-    
-    -------------------------------------------
-    SETUP
-    -------------------------------------------
-    // You can define a network that your website uses. If the user
-    // is not on the network they will be prompted to switch.
-    var network = new Network("Test Network 1", "testnet1.eos.io", 8888);
-    
-    // Failure to set a network will disallow messaging the extension.
-    scatter.setNetwork(network);
-    
-    --------------------------------------------
-    USAGE
-    -------------------------------------------
-    All messages between the webpage and the extension are
-    pseudo async. Handle them just like regular promises.
-    -------------------------------------------
-    // This can be called every time a user visits your website.
-    // If permissions have been previously granted the user will
-    // not be prompted, instead the private key they associated with
-    // the website will be provided as authentication.
-    scatter.requestPermissions().then(privateKey => {
-        //...
-    }).catch(error => {
-        // User rejected the request.
-    });
-    
-    // To further authenticate a user you can send a random message to be
-    // verified against their private key using the public key you have on file.
-    scatter.proveIdentity(publicKey).then(verified => {
-        //...
-    });
-    
-    
+    //...
 }
+```
+    
+#### SETUP
+
+You can define a network that your website uses. If the user is not on the network they will be prompted to switch. 
+**Failure to set a network will disallow messaging the extension.**
+```
+var network = new Network("Test Network 1", "testnet1.eos.io", 8888);
+scatter.setNetwork(network);
+```
+
+#### USAGE
+
+**All messages between the webpage and the extension are pseudo async. Handle them just like regular promises.**
+
+```
+scatter.requestPermissions().then(privateKey => {
+    //...
+}).catch(error => {
+    // User rejected the request, 
+    // or removed previously granted permissions.
+});
+```
+
+The method above can be called every time a user visits your website.
+If permissions have been previously granted the user will
+not be prompted, instead the private key they associated with
+the website will be provided as authentication.
+
+To further authenticate a user you can have a random message sent to be
+verified against their private key using the public key you have on file.
+```
+scatter.proveIdentity(publicKey).then(verified => {
+    //...
+});
 ```
 
 
