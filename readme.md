@@ -57,39 +57,54 @@ Then load the unpacked extension in chrome with the method described above.
 
 ### Usage example for the interacting webpage
 
+If you want typings and code completion for the web api you can head over to [Scatterdapp](https://github.com/nsjames/Scatterdapp).
+
 _I'm going to use vanilla js and **ES6** syntax just for clarity._
 
 
 ```
-// Waiting for the script to be injected:
-document.addEventListener("scatterLoaded", () => {
-	// Do work here...
-});
-
-----------------------------
-
-// Subscribing to messages ( This should only be called once )
-// This method is built so you can inject it with a custom message handler.
-window.scatter.subscribe(message => {
-	switch(msg.type){
-    	case 'SIGN_MSG':
-        	// Do work here
-        	break;
-    }
-})
-
-----------------------------
-
-// Getting the default Public Key of the user's currently open wallet.
-window.scatter.getPublicKey().then(key => {
-	if(key){
-    	// User has an open wallet
-    }
-    else {
-    	// Display a message to the user to open their wallet.
-        // You can poll this method for results.
-    }
-})
+// ScatterLoaded happens _after_ encryption syncs.
+// window.scatter will be null until encryption occurs
+document.addEventListener('scatterLoaded', afterLoad)
+---------------------------------------------------------
+function afterLoad(){
+    
+    var scatter = window.scatter;
+    
+    -------------------------------------------
+    SETUP
+    -------------------------------------------
+    // You can define a network that your website uses. If the user
+    // is not on the network they will be prompted to switch.
+    var network = new Network("Test Network 1", "testnet1.eos.io", 8888);
+    
+    // Failure to set a network will disallow messaging the extension.
+    scatter.setNetwork(network);
+    
+    --------------------------------------------
+    USAGE
+    -------------------------------------------
+    All messages between the webpage and the extension are
+    pseudo async. Handle them just like regular promises.
+    -------------------------------------------
+    // This can be called every time a user visits your website.
+    // If permissions have been previously granted the user will
+    // not be prompted, instead the private key they associated with
+    // the website will be provided as authentication.
+    this.scatter.requestPermissions().then(privateKey => {
+        //...
+    }).catch(error => {
+        // User rejected the request.
+    });
+    
+    // To further authenticate a user you can send a random message to be
+    // verified against their private key using the public key you have on file.
+    this.scatter.proveIdentity(publicKey).then(verified => {
+        //...
+    });
+    
+    
+}
 ```
 
 
