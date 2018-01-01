@@ -1,0 +1,3 @@
+[submodule "scatterdapp"]
+	path = scatterdapp
+	url = https://github.com/nsjames/Scatterdapp

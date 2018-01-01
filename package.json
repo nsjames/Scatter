@@ -4,23 +4,27 @@
   "description": "EOS Wallet & Bridge",
   "main": "main.js",
   "scripts": {
-    "dev": "gulp run"
+    "dev": "webpack --watch",
+    "submodule": "git submodule update --init --recursive"
   },
   "author": "nsjames",
   "license": "MIT",
   "devDependencies": {
-    "browserify": "^14.5.0",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-es2015": "^6.24.1",
     "concurrently": "^3.5.1",
-    "del": "^3.0.0",
-    "gulp": "github:gulpjs/gulp#4.0",
-    "gulp-bro": "^1.0.2",
-    "gulp-sass": "^3.1.0",
-    "gulp-useref": "^3.1.3",
-    "gulp-util": "^3.0.8",
-    "gulp-vueify2": "0.0.3",
-    "gulp-watch": "^4.3.11",
-    "gulp-zip": "^4.1.0",
-    "watchify": "^3.9.0"
+    "css-loader": "^0.28.7",
+    "extract-text-webpack-plugin": "^3.0.2",
+    "file-loader": "^1.1.6",
+    "html-loader": "^0.5.1",
+    "ignore-emit-webpack-plugin": "^0.2.1",
+    "node-sass": "^4.7.2",
+    "sass-loader": "^6.0.6",
+    "style-loader": "^0.19.1",
+    "vue-loader": "^13.6.2",
+    "vue-template-compiler": "^2.5.13",
+    "webpack": "^3.10.0"
   },
   "dependencies": {
     "bip39": "^2.4.0",
@@ -31,20 +35,6 @@
     "eosjs-keygen": "^1.3.0",
     "randombytes": "^2.0.5",
     "vue": "^2.5.13",
-    "vue-resource": "^1.3.5",
-    "vue-router": "^3.0.1",
-    "vue-single-file-component-compiler": "^0.6.1"
-  },
-  "browserify": {
-    "transform": [
-      [
-        "babelify",
-        {
-          "presets": [
-            "es2015"
-          ]
-        }
-      ]
-    ]
+    "vue-router": "^3.0.1"
   }
 }
