@@ -2,7 +2,7 @@ import { EncryptedStream } from './streams/EncryptedStream';
 import { LocalStream } from './streams/LocalStream';
 import {RandomKeyGen} from './cryptography/RandomKeyGen';
 import {AES} from './cryptography/AES';
-import {EOSMessageTypes} from 'scatterdapp';
+import {ScatterMessageTypes, ScatterMessage} from 'scatterdapp';
 
 let webStream = new WeakMap();
 let internalStream = new WeakMap();
@@ -18,23 +18,26 @@ class ContentScript {
 
     // TODO: Move logic into an actual handler
     contentListener(msg){
+        console.log("Got message", msg, webStream.synced);
+
+        // Dont allow non-sync before sync
         if(!webStream.synced && (!msg.hasOwnProperty('type') || msg.type !== 'sync'))
             { webStream.send({type:'error'}, "mal-warn"); return; }
+
+        let scatterMessage = ScatterMessage.fromJson(msg);
 
         switch(msg.type){
             case 'sync':
                 webStream.key = msg.handshake.length ? msg.handshake : null;
                 webStream.synced = true;
+                webStream.send({type:'sync'}, "injected");
                 break;
-            case EOSMessageTypes.GET_PUBLIC_KEY:
-                webStream.send({type:'signed', signature:'ASFDKJDSKFJ'}, "injected")
-                break;
-            case EOSMessageTypes.SIGN_MSG:
-                webStream.send({type:'signed', signature:'ASFDKJDSKFJ'}, "injected")
+            case ScatterMessageTypes.REQUEST_PERMISSIONS:
+                webStream.send(scatterMessage.respond('hello world'), "injected");
                 break;
             default:
                 console.log("Default", msg, webStream.key)
-                webStream.send({type:'from default content script switch'}, "injected")
+                webStream.send({type:'default'}, "injected")
         }
     }
 

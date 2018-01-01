@@ -12,7 +12,7 @@ export class EncryptedStream {
     listenWith(func){
         document.addEventListener(this.eventName, (e) => {
             let msg = e.detail;
-            msg = (this.synced) ? AES.decrypt(msg, this.key) : msg;
+            msg = (this.synced || typeof msg === 'string') ? AES.decrypt(msg, this.key) : msg;
             func(msg);
         });
     }
@@ -21,20 +21,14 @@ export class EncryptedStream {
         const addSender = () => { data.from = this.eventName; };
         const encryptIfSynced = () => { data = (this.synced) ? AES.encrypt(data, this.key) : data; };
 
-        return new Promise((resolve, reject) => {
-            if(typeof data !== 'object') { reject(); return; }
-            addSender();
-            encryptIfSynced();
-            dispatch(data, to);
-            resolve(true);
-        })
+        if(typeof data !== 'object') return;
+        addSender();
+        encryptIfSynced();
+        dispatch(data, to);
     }
 
     sync(to, handshake){
-        this.send({type:'sync', handshake}, to).then(res => {
-            this.synced = true;
-        });
-
+        this.send({type:'sync', handshake}, to);
     }
 
 
