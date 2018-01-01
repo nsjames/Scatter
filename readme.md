@@ -59,9 +59,6 @@ Then load the unpacked extension in chrome with the method described above.
 
 If you want typings and code completion for the web api you can head over to [Scatterdapp](https://github.com/nsjames/Scatterdapp).
 
-_I'm going to use vanilla js and **ES6** syntax just for clarity._
-
-
 ```
 // ScatterLoaded happens _after_ encryption syncs.
 // window.scatter will be null until encryption occurs
