@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import {ScatterData} from './models/scatter'
-import {LocalStream} from './streams/LocalStream';
+import {ScatterData, LocalStream} from 'scattermodels'
 import AuthComponent from './components/AuthComponent.vue'
 import KeychainComponent from './components/KeychainComponent.vue'
 import SettingsComponent from './components/SettingsComponent.vue'

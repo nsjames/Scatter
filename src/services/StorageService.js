@@ -1,6 +1,4 @@
-import {ScatterData} from '../models/scatter'
-import {Keychain} from '../models/keychain';
-import {PasswordHasher} from '../cryptography/PasswordHasher';
+import {ScatterData} from 'scattermodels'
 
 export class StorageService {
 

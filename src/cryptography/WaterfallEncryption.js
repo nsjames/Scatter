@@ -1,13 +1,8 @@
-import {AES} from '../cryptography/AES';
-import {ScatterData} from '../models/scatter';
-import SHA256 from "crypto-js/sha256";
-
-const WATERFALL_TAG    =   '[W|A|T|E|R|F|A|L|L]';
 /***
  * Waterfall encryption
  */
 export class WaterfallEncryption {
-
+    static WATERFALL_TAG    =   '[W|A|T|E|R|F|A|L|L]';
 
     /***
      * @param cleartext - A json object or string
@@ -21,7 +16,7 @@ export class WaterfallEncryption {
         // Always convert to string
         if(typeof temp === 'object') temp = JSON.stringify(temp);
 
-        let segments = stringToChunks(temp);
+        let segments = WaterfallEncryption.stringToChunks(temp);
         let rootSegment = segments.shift();
         let rootHash = algorithm(rootSegment, passkey);
 
@@ -29,7 +24,7 @@ export class WaterfallEncryption {
         segments.map(segment => waterfallHashes.push(algorithm(segment, (!waterfallHashes.length) ? rootHash : waterfallHashes[waterfallHashes.length-1] + passkey)));
 
         let rehashedRoot = algorithm(rootHash, waterfallHashes[waterfallHashes.length-1] + passkey);
-        let joins = rehashedRoot + " " + waterfallHashes.join(" ")+WATERFALL_TAG;
+        let joins = rehashedRoot + " " + waterfallHashes.join(" ")+WaterfallEncryption.WATERFALL_TAG;
         return algorithm(joins, passkey);
 
     }
@@ -41,8 +36,8 @@ export class WaterfallEncryption {
      */
     static decrypt(cyphertext, passkey, algorithm){
         let unencrypted = algorithm(cyphertext, passkey);
-        if(unencrypted.indexOf(WATERFALL_TAG) === -1) return null;
-        let segments = unencrypted.replace(WATERFALL_TAG,"").split(" ");
+        if(unencrypted.indexOf(WaterfallEncryption.WATERFALL_TAG) === -1) return null;
+        let segments = unencrypted.replace(WaterfallEncryption.WATERFALL_TAG,"").split(" ");
 
         let root = segments.shift();
         const clearRootHash = algorithm(root, segments[segments.length-1] + passkey);
@@ -56,18 +51,21 @@ export class WaterfallEncryption {
 
         return clearRoot + clearWaterfall.join("");
     }
+
+    static stringToChunks(string, desiredChunks = 10, bytesPerChunk = 0, acc = []){
+        if(bytesPerChunk === 0) bytesPerChunk = Math.floor(string.length / desiredChunks);
+        if(acc.length===desiredChunks) {
+            acc[acc.length-1] += string;
+            return acc;
+        }
+        else {
+            acc.push(string.slice(0, bytesPerChunk));
+            return WaterfallEncryption.stringToChunks(string.substr(bytesPerChunk), desiredChunks, bytesPerChunk, acc)
+        }
+    }
 }
 
-function stringToChunks(string, desiredChunks = 10, bytesPerChunk = 0, acc = []){
-    if(bytesPerChunk === 0) bytesPerChunk = Math.floor(string.length / desiredChunks);
-    if(acc.length===desiredChunks) {
-        acc[acc.length-1] += string;
-        return acc;
-    }
-    else {
-        acc.push(string.slice(0, bytesPerChunk));
-        return stringToChunks(string.substr(bytesPerChunk), desiredChunks, bytesPerChunk, acc)
-    }
-}
+export default WaterfallEncryption;
+
 
 

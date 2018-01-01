@@ -115,7 +115,7 @@
 
 
 
-                            <figure class="action-button" v-on:click="openedWallet.setDefaultKeyPair(keyPair)" :class="{'active':openedWallet.default === keyPair.publicKey}">Default</figure>
+                            <figure class="action-button" v-on:click="openedWallet.setDefaultKeyPair(keyPair)" :class="{'active':openedWallet.defaultPublicKey === keyPair.publicKey}">Default</figure>
                             <figure class="action-button" v-on:click="keyPair.remove()">Delete</figure>
                         </section>
                         <figure class="public-key">
@@ -152,11 +152,8 @@
 </template>
 <script>
     import Vue from 'vue';
-    import {KeyPair} from '../models/keypair'
-    import {Wallet} from '../models/wallet'
+    import {KeyPair, Wallet, ScatterData, LocalStream} from 'scattermodels'
     import {EOSKeygen} from '../cryptography/EOSKeygen'
-    import {ScatterData} from '../models/scatter'
-    import {LocalStream} from '../streams/LocalStream'
     import {EOSService} from '../services/EOSService'
 
     export default {
@@ -250,7 +247,7 @@
 
             generateNewKey:function(){
                 this.newKeyPair = EOSKeygen.generateKeys();
-                if(!this.openedWallet.keyPairs.length) this.openedWallet.default = this.newKeyPair.publicKey;
+                if(!this.openedWallet.keyPairs.length) this.openedWallet.defaultPublicKey = this.newKeyPair.publicKey;
                 this.openedWallet.keyPairs.push(this.newKeyPair);
                 this.newKeyPair = KeyPair.placeholder();
             },

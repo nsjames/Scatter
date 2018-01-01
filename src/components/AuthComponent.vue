@@ -26,10 +26,9 @@
 </template>
 <script>
     import Vue from 'vue';
-    import {Mnemonic} from '../cryptography/Mnemonic'
+    import {LocalStream, ScatterData} from 'scattermodels'
+    import {Mnemonic} from '../cryptography/Mnemonic';
     import {PasswordHasher} from '../cryptography/PasswordHasher'
-    import {LocalStream} from '../streams/LocalStream'
-    import {ScatterData} from '../models/scatter'
     import {EOSKeygen} from '../cryptography/EOSKeygen'
 
     export default {

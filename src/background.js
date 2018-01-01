@@ -1,8 +1,5 @@
 import {StorageService} from './services/StorageService'
-import {ScatterData} from './models/scatter'
-import {LocalStream} from './streams/LocalStream';
-import {WaterfallEncryption} from './cryptography/WaterfallEncryption';
-import {AES} from './cryptography/AES';
+import {ScatterData, LocalStream, WaterfallEncryption, AES} from 'scattermodels'
 
 // Not actually sure if I need you yet bro.
 let scatterData = new WeakMap();

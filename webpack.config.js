@@ -21,7 +21,11 @@ module.exports = {
         filename: '[name]'
     },
     resolve: {
-        alias: { vue: 'vue/dist/vue.js', scatterdapp: path.join(__dirname, "node_modules/scatterdapp") },
+        alias: {
+            vue: 'vue/dist/vue.js',
+            scatterdapp: path.join(__dirname, "node_modules/scatterdapp"),
+            scattermodels: path.join(__dirname, "node_modules/scattermodels")
+        },
         modules: [ path.join(__dirname, "node_modules") ]
     },
     module: {
@@ -40,5 +44,5 @@ module.exports = {
         new ZipPlugin({ path: '../', filename: 'scatter.zip', })
     ],
     stats: { colors: true },
-    devtool: 'source-map'
+    devtool: 'inline-source-map'
 }

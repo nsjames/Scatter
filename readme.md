@@ -30,13 +30,19 @@ I've set up a [Trello board](https://trello.com/b/lP7Sj6eA) for tracking issues 
 
 * Webpack is required globally `npm i -g webpack`
 
-This package requires an `npm link` from another package called **Scatterdapp** for the moment until it is hosted. 
-( _Scatterdapp is the front-end wrapper around scatter which gets injected into web pages_ )
+This package requires an `npm link` from two packages 
+( [Scatterdapp](https://github.com/nsjames/Scatterdapp), 
+[Scattermodels](https://github.com/nsjames/Scattermodels) ) 
+for the moment until they are hosted on npm. 
 
-* Make a directory somewhere called `/scatterdapp/`
-* Do `git clone https://github.com/nsjames/Scatterdapp.git` inside the directory
-* While still inside of the `/scatterdapp/` directory do `npm link`
-* Then go to wherever you cloned **Scatter** to and do `npm link scatterdapp`
+( _Scatterdapp is the front-end wrapper around scatter which gets injected into web pages, 
+and Scattermodels are just shared resources between the two_ )
+
+1) Make a directory somewhere called `/scatterdapp/`
+2) Do `git clone https://github.com/nsjames/Scatterdapp.git` inside the directory
+3) While still inside of the `/scatterdapp/` directory do `npm link`
+4) **Repeat 1-3 for `https://github.com/nsjames/Scattermodels.git`**
+5) Then go to wherever you cloned **Scatter** into and do `npm link scatterdapp scattermodels`
 
 
 ## Building:

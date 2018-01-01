@@ -1,5 +1,5 @@
 import Eos from 'eosjs'
-import {KeyPairAccount} from '../models/keypair-account';
+import {KeyPairAccount} from 'scattermodels';
 
 
 const config = {

@@ -1,6 +1,6 @@
-import {Mnemonic} from '../cryptography/Mnemonic';
+import {KeyPair} from 'scattermodels';
+import {Mnemonic} from './Mnemonic';
 import {PrivateKey} from 'eosjs-ecc';
-import {KeyPair} from '../models/keypair'
 
 export class EOSKeygen {
 

@@ -1,14 +1,10 @@
-import { EncryptedStream } from './streams/EncryptedStream';
-import { LocalStream } from './streams/LocalStream';
-import {RandomKeyGen} from './cryptography/RandomKeyGen';
-import {AES} from './cryptography/AES';
-import {ScatterMessageTypes, ScatterMessage} from 'scatterdapp';
+import { EncryptedStream, LocalStream, AES, RandomIdGenerator, MessageTypes, Message } from 'scattermodels';
 
 let webStream = new WeakMap();
 let internalStream = new WeakMap();
 class ContentScript {
     constructor(){
-        webStream = new EncryptedStream("scatter", RandomKeyGen.generate(12));
+        webStream = new EncryptedStream("scatter", RandomIdGenerator.generate(12));
         webStream.listenWith((msg) => this.contentListener(msg));
 
         internalStream = new LocalStream();
@@ -24,7 +20,7 @@ class ContentScript {
         if(!webStream.synced && (!msg.hasOwnProperty('type') || msg.type !== 'sync'))
             { webStream.send({type:'error'}, "mal-warn"); return; }
 
-        let scatterMessage = ScatterMessage.fromJson(msg);
+        let scatterMessage = Message.fromJson(msg);
 
         switch(msg.type){
             case 'sync':
@@ -32,7 +28,7 @@ class ContentScript {
                 webStream.synced = true;
                 webStream.send({type:'sync'}, "injected");
                 break;
-            case ScatterMessageTypes.REQUEST_PERMISSIONS:
+            case MessageTypes.REQUEST_PERMISSIONS:
                 webStream.send(scatterMessage.respond('hello world'), "injected");
                 break;
             default:
