@@ -2,11 +2,12 @@
 @import './mixins';
 
 body {
-  width:360px;
+  width:100%;
   height:500px;
   padding:0;
   margin:0;
   font-family: 'Raleway', sans-serif;
+
 }
 
 div, figure, section, nav, article {
@@ -16,7 +17,7 @@ div, figure, section, nav, article {
 .top {
   background:$white;
   height:140px;
-  position:fixed;
+  position:absolute;
   top:0;
   left:0;
   right:0;
@@ -27,7 +28,7 @@ div, figure, section, nav, article {
 .bottom {
   background:$light-gray;
   height:360px;
-  position:fixed;
+  position:absolute;
   bottom:0;
   left:0;
   right:0;
@@ -36,8 +37,8 @@ div, figure, section, nav, article {
   box-shadow:inset 0 20px 50px -20px rgba(0,0,0,0.02), inset 0 1px 2px rgba(0,0,0,0.02), inset 0 10px 70px -30px rgba(0, 0, 0, 0.25);
 }
 
-.half-screen { height:250px; }
-.full-screen { height:250px; }
+.half-screen { height:50%; }
+.tool-bar { height:calc(100% - 60px); }
 .hidden-screen { height: 435px; }
 
 footer {
@@ -233,6 +234,40 @@ button {
     &:first-child {
       margin-right:10px;
     }
+  }
+
+  &.bad-touch {
+    animation-name: shake-red;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+  }
+
+  @keyframes shake-red {
+    10%, 90% {
+      transform: translate3d(-1px, 0, 0);
+      border:2px solid #d02222;
+      background:#f73e3e;
+      color:#fff;
+    }
+
+    20%, 80% {
+      transform: translate3d(2px, 0, 0);
+    }
+
+    30%, 50%, 70% {
+      transform: translate3d(-4px, 0, 0);
+    }
+
+    40%, 60% {
+      transform: translate3d(4px, 0, 0);
+    }
+
+    //100% {
+    //  background:$white;
+    //  border:2px solid $input-border;
+    //  color:$dark-gray;
+    //}
   }
 }
 
@@ -878,7 +913,337 @@ button {
 }
 
 
+.request-auth {
+  overflow:hidden;
 
+  .network {
+    float:right;
+    text-align:right;
+    padding:19px;
+    font-style:italic;
+    font-family: 'Open Sans', sans-serif;
+    line-height:12px;
+    font-size:11px;
+
+    .name, .host {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-right:2px;
+      width:220px;
+    }
+
+    .name {
+      font-weight:300;
+    }
+
+    .host {
+      font-weight:600;
+      color:#b0b0b0;
+    }
+  }
+
+  .info {
+    padding:30px 30px 0;
+    margin-top:50px;
+    font-family:'Raleway', sans-serif;
+    font-style:italic;
+
+    .domain {
+      color:#b7b7b7;
+      font-family: 'Open Sans', sans-serif;
+      font-weight:600;
+    }
+
+    .title {
+      font-size:18px;
+      color:#828282;
+      margin-top:5px;
+    }
+
+    .description {
+      font-size:11px;
+      color:#a3a3a3;
+      margin-top:5px;
+    }
+
+    .warning {
+      color:#f73e3e;
+      text-shadow:0 1px 0 $white;
+      font-size:9px;
+      font-weight:600;
+      margin-top:20px;
+    }
+  }
+
+
+  .wallet-select {
+    padding:30px;
+
+    .selected {
+      border-radius:4px;
+      width:100%;
+      background:#fff;
+      height:67px;
+      box-shadow:0 1px 2px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.04);
+      transition:all 0.2s ease;
+      transform:translateY(0px);
+      transition-property: box-shadow, transform, background;
+      cursor: pointer;
+
+
+      &:hover {
+        box-shadow:0 6px 22px rgba(0,0,0,0.05), 0 15px 30px rgba(0,0,0,0.03);
+        transform:translateY(-2px);
+      }
+
+      &:active {
+        box-shadow:0 1px 2px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.07);
+        transform:translateY(1px);
+        background:rgba(0,0,0,0.001);
+      }
+
+      .wallet {
+        margin:10px;
+        padding:10px;
+        border:1px solid #e9e9e9;
+        width:calc(100% - 82px);
+        font-family: 'Open Sans', sans-serif;
+        display:inline-block;
+        line-height:12px;
+        border-radius:4px;
+
+        .name {
+          font-family: 'Raleway', sans-serif;
+          font-size:11px;
+          font-weight:bold;
+          width:100%;
+          color:rgba(0,0,0,0.7);
+        }
+
+        .quantity, .symbol, .key {
+          display:inline-block;
+          margin-right:10px;
+          font-size:9px;
+          width:calc(33.3% - 10px);
+        }
+
+        .quantity, .symbol {
+          color:$blue;
+          font-weight:bold;
+        }
+
+        .symbol {
+          width:26px;
+        }
+
+        .key {
+          color:#c1c1c1;
+          margin-right:0;
+        }
+      }
+
+      .arrow {
+        float:right;
+        height:65px;
+        line-height:65px;
+        text-align:center;
+        width:60px;
+        background:rgba(0,0,0,0.01);
+        margin:1px;
+        cursor: pointer;
+        border-top-right-radius:4px;
+        border-bottom-right-radius:4px;
+        color:rgba(0,0,0,0.3);
+        transition:background 0.2s ease, color 0.2s ease;
+        font-size:16px;
+
+        &:hover {
+          background:rgba(0,0,0,0.05);
+          color:rgba(0,0,0,0.5);
+        }
+
+        &:active {
+          background:rgba(255,255,255,1);
+          color:rgba(0,0,0,0.2);
+        }
+      }
+    }
+
+  }
+
+  .actions {
+    overflow:hidden;
+    height:50px;
+    padding:0 30px;
+
+    .action {
+      cursor: pointer;
+      width:110px;
+      height:50px;
+      line-height:48px;
+      border-radius:4px;
+      font-size:18px;
+      font-family: 'Raleway', sans-serif;
+      text-align:center;
+      transition:all 0.2s ease;
+      transition-property: background, color;
+
+      &.blue {
+        border:1px solid $blue;
+        color:$blue;
+        float:left;
+
+        &:hover {
+          background:$blue;
+          color:$white;
+        }
+
+        &:active {
+          background:transparent;
+          color:$blue;
+        }
+      }
+
+      &.red {
+        border:1px solid $red;
+        color:$red;
+        float:right;
+
+        &:hover {
+          background:$red;
+          color:$white;
+        }
+
+        &:active {
+          background:transparent;
+          color:$red;
+        }
+      }
+    }
+  }
+
+
+  .transaction {
+    margin:30px;
+
+    .header {
+      background:$white;
+      border-radius:4px;
+      padding:10px;
+      overflow:hidden;
+      box-shadow:0 1px 2px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.04);
+      margin-bottom:10px;
+
+      .title {
+        width:calc(100% - 100px);
+        float:left;
+        font-size:11px;
+        font-weight:600;
+        font-family:'Open Sans', sans-serif;
+        color:#9f9f9f;
+        font-style:italic;
+      }
+
+      .formats {
+        width:100px;
+        float:right;
+        font-size:9px;
+        font-weight:600;
+        font-family:'Raleway', sans-serif;
+
+        .format {
+          height:15px;
+          line-height:15px;
+          cursor: pointer;
+          padding:0 5px;
+          border-radius:4px;
+          border:1px solid $white;
+          font-size:9px;
+          display:inline-block;
+          margin-left:5px;
+          color:rgba(0,0,0,0.1);
+          transition:all 0.2s ease;
+          transition-property: border, color;
+
+          &.active {
+            border:1px solid #c5c5c5;
+            color:#9d9d9d;
+          }
+
+          &:hover {
+            color:#9d9d9d;
+          }
+        }
+      }
+    }
+
+    .recursive-list {
+
+    }
+
+    .prop-bubble {
+      color:$white;
+      font-weight:600;
+      font-size:11px;
+      font-family:'Open Sans', sans-serif;
+      padding: 5px;
+      background:$blue;
+      display:inline-block;
+      border-radius:2px;
+
+      &:nth-child(even){
+        background:$white;
+        color:$dark-gray;
+
+        &.recursive {
+          background:transparent;
+        }
+
+        &.blue-only {
+          background:$red;
+          color:$white;
+        }
+      }
+    }
+
+    .contract-action {
+      padding:10px;
+      background:#393e3f;
+      border-top-left-radius:4px;
+      border-top-right-radius:4px;
+    }
+
+    .contract-props {
+      padding:10px;
+      background:#494f51;
+      border-bottom-left-radius:4px;
+      border-bottom-right-radius:4px;
+
+      .key-value {
+
+        &:not(:last-child){
+          margin-bottom:5px;
+        }
+      }
+    }
+
+    .contract-json {
+      padding:10px;
+      background:#494f51;
+      font-size:13px;
+      color:$white;
+      border-bottom-left-radius:4px;
+      border-bottom-right-radius:4px;
+
+    }
+
+
+
+  }
+
+
+}
 
 
 

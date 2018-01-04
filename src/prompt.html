@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scatter</title>
+    <link href="https://fonts.googleapis.com/css?family=Grand+Hotel|Open+Sans:400,600|Raleway:400,600,700,800" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <section id="prompt">
+        <request-unlock-prompt v-if="prompt && prompt.type === 'req_unlock'" v-bind:responder="prompt.payload.responder"></request-unlock-prompt>
+        <request-auth-prompt v-if="prompt && prompt.type === 'prompt_auth'" v-bind:responder="prompt.payload.responder"
+                             v-bind:network="prompt.payload.network" v-bind:transaction="prompt.payload.transaction" v-bind:permission="prompt.payload.permission"></request-auth-prompt>
+
+    </section>
+
+
+
+    <script type="text/javascript" src="prompt.js"></script>
+</body>
+</html>

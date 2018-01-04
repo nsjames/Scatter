@@ -4,7 +4,10 @@ export const InternalMessageTypes = {
     OPEN:'open',
     LOCK:'lock',
     IS_LOCKED:'locked?',
+    REQUEST_UNLOCK:'req_unlock',
+    PROMPT_AUTH:'prompt_auth',
     UNLOCK:'unlock',
     KEYCHAIN:'keychain',
-    UPDATE:'update'
-}
+    UPDATE:'update',
+    PUBLIC_TO_PRIVATE:'pub2priv'
+};

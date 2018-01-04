@@ -1,4 +1,5 @@
 import Eos from 'eosjs'
+import ecc from 'eosjs-ecc';
 import {KeyPairAccount} from 'scattermodels';
 
 
@@ -32,6 +33,36 @@ export class EOSService {
                     resolve([]);
                 });
             });
+        })
+    }
+
+
+    static abiJsonToBin(code, action, args){
+        return new Promise((resolve, reject) => {
+            eos.abiJsonToBin({code, action, args}).then(res => {
+                resolve(res.binargs);
+            })
+        })
+    }
+
+
+    static sign(trx, privateKey){
+        return ecc.sign(trx, privateKey);
+    }
+
+    static getLatestBlock(){
+        return new Promise((resolve, reject) => {
+            eos.getInfo({}).then(info => {
+                // ERROR(?)
+                if(!info) return;
+
+                eos.getBlock({block_num_or_id: info.head_block_num}).then(block => {
+                    // ERROR(?)
+                    if(!block) return;
+
+                    resolve(block);
+                });
+            })
         })
     }
 

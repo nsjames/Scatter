@@ -6,7 +6,7 @@
                 <scatter-select v-bind:options="[CREATE_NEW_KEYCHAIN, IMPORT_A_KEYCHAIN]" v-on:changed="updateSelectedKeychainOption"></scatter-select>
                 <section v-if="selectedKeychainOption === CREATE_NEW_KEYCHAIN">
                     <scatter-input icon="fa-lock" type="password" placeholder="Password" v-on:changed="updatePassword"></scatter-input>
-                    <scatter-button text="Create Keychain" v-on:clicked="createNewKeychain();"></scatter-button>
+                    <scatter-button text="Create Keychain" ref="createButton" v-on:clicked="createNewKeychain();"></scatter-button>
                 </section>
 
                 <section v-if="selectedKeychainOption === IMPORT_A_KEYCHAIN">
@@ -18,7 +18,7 @@
 
             <section v-else>
                 <scatter-input icon="fa-lock" type="password" placeholder="Password" v-on:changed="updatePassword"></scatter-input>
-                <scatter-button text="Unlock Keychain" v-on:clicked="unlockKeychain();"></scatter-button>
+                <scatter-button text="Unlock Keychain" ref="unlockButton" v-on:clicked="unlockKeychain();"></scatter-button>
                 <figure v-on:click="reset" class="forgot">Recover from seed phrase</figure>
             </section>
         </section>
@@ -26,11 +26,12 @@
 </template>
 <script>
     import Vue from 'vue';
-    import {LocalStream, ScatterData, Message} from 'scattermodels'
+    import {LocalStream, ScatterData, NetworkMessage} from 'scattermodels'
     import {Mnemonic} from '../cryptography/Mnemonic';
     import {PasswordHasher} from '../cryptography/PasswordHasher'
     import {EOSKeygen} from '../cryptography/EOSKeygen'
     import {InternalMessageTypes} from '../messages/InternalMessageTypes';
+    import {AuthenticationService} from '../services/AuthenticationService';
 
     export default {
         data() {
@@ -53,37 +54,29 @@
             updateSelectedKeychainOption:function(x){ this.selectedKeychainOption = x; },
 
             createNewKeychain:function(){
-                // TODO: Error handling
 
-                let [mnemonic, seed] = Mnemonic.generateMnemonic(this.password);
-                Vue.prototype.scatterData.data.hash = PasswordHasher.hash(this.password);
-                this.password = '';
+                AuthenticationService.create(this.password, Vue.prototype.scatterData).then(res => {
+                    Vue.prototype.scatterData = res.scatter;
+                    //TODO: Display mnemonic instead before routing to 'keychain'
+                    console.log('mnemonic', res.mnemonic);
 
-                LocalStream.send(Message.payload(InternalMessageTypes.SEED, seed)).then(res => {
-                    ScatterData.update(Vue.prototype.scatterData).then(saved => {
-                        Vue.prototype.scatterData = ScatterData.fromJson(saved);
-                        //TODO: Display mnemonic instead before routing to 'keychain'
-                        console.log('mnemonic', mnemonic);
-
-                        this.keychainAvailable = true;
-                        this.$router.push({name:'keychain'});
-                    })
-                });
+                    this.keychainAvailable = true;
+                    this.$router.push({name:'keychain'});
+                }).catch(badPassword => {
+                    this.$refs.createButton.errored();
+                })
             },
+
             unlockKeychain:function(){
-                //TODO: Error handling
-                if(!this.password.length) return false;
-                if(!PasswordHasher.validate(this.password, Vue.prototype.scatterData.data.hash)) return false;
-
-                let [mnemonic, seed] = Mnemonic.generateMnemonic(this.password);
-                LocalStream.send(Message.payload(InternalMessageTypes.SEED, seed)).then(res => {
-                    LocalStream.send(Message.signal(InternalMessageTypes.UNLOCK)).then(unlocked => {
-                        Vue.prototype.scatterData = ScatterData.fromJson(unlocked);
-                        this.$router.push('keychain');
-                    })
-                });
+                AuthenticationService.authenticate(this.password, Vue.prototype.scatterData.data.hash).then(scatter => {
+                    Vue.prototype.scatterData = scatter;
+                    this.$router.push('keychain');
+                }).catch(badPassword => {
+                    this.$refs.unlockButton.errored();
+                })
 
             },
+
             importKeychainFromJson:function(){},
 
 
