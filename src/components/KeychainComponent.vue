@@ -152,9 +152,8 @@
 </template>
 <script>
     import Vue from 'vue';
-    import {KeyPair, Wallet, ScatterData, LocalStream, NetworkMessage} from 'scattermodels'
+    import {KeyPair, Wallet, ScatterData, LocalStream, NetworkMessage, EOSService} from 'scattermodels'
     import {EOSKeygen} from '../cryptography/EOSKeygen'
-    import {EOSService} from '../services/EOSService'
     import {InternalMessageTypes} from '../messages/InternalMessageTypes';
 
     export default {
@@ -239,7 +238,11 @@
                     return false;
                 }
 
-                EOSService.getAccountsFromPublicKey(keyPair.publicKey).then(keyPairAccounts => {
+                //TODO CHANGE THE NETWORK PROVIDER HANDLING
+                let eos = new EOSService('http://192.168.56.101:8888');
+
+
+                eos.getAccountsFromPublicKey(keyPair.publicKey).then(keyPairAccounts => {
                     keyPair.setAccounts(keyPairAccounts);
                     this.openedWallet.keyPairs.push(keyPair);
                     this.newKeyPair = KeyPair.placeholder();

@@ -34,28 +34,7 @@ function setupApp(){
     });
 
     setTimeout(() => {
-        // app.prompt = {
-        //     type:InternalMessageTypes.PROMPT_AUTH,
-        //     payload:{
-        //         network:{name: "Test Network 1", host: "testnet1.eos.io", port: 8888},
-        //         transaction:{
-        //             domain:'cryptocraps.com',
-        //             name:'EOS Deposit',
-        //             description:'Basic deposit of coins into Crypto Craps to use for playing at the tables.',
-        //             data:{
-        //                 from: "currency",
-        //                 to: "inita",
-        //                 quantity: "5"
-        //             },
-        //             message:{code: "currency", type: "transfer", authorization: [{account: "currency", permission: "active"}]},
-        //             publicKey:""
-        //         },
-        //         responder:function(){},
-        //         permission:{}
-        //     }
-        // };
         app.prompt = window.scatterPrompt;
-
         console.log(app.prompt);
     }, 20);
 }

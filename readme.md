@@ -62,6 +62,7 @@ If you want typings and code completion for the web api you can head over to [Sc
 ```
 // ScatterLoaded happens _after_ encryption syncs.
 // window.scatter will be null until encryption occurs
+---------------------------------------------------------
 document.addEventListener('scatterLoaded', afterLoad)
 ---------------------------------------------------------
 function afterLoad(){
@@ -72,39 +73,75 @@ function afterLoad(){
     
 #### SETUP
 
-You can define a network that your website uses. If the user is not on the network they will be prompted to switch. 
+You must define a network that your website uses. A user's accounts will be filtered by the network.
 **Failure to set a network will disallow messaging the extension.**
 ```
 var network = new Network("Test Network 1", "testnet1.eos.io", 8888);
-scatter.setNetwork(network);
+window.scatter.setNetwork(network);
 ```
 
 #### USAGE
 
-**All messages between the webpage and the extension are pseudo async. Handle them just like regular promises.**
+There's two ways to have a user sign a transaction.
+
+If you already know the account your used uses, you can inject the account for
+them right into `eosjs` and not have to worry about special methods:
 
 ```
-scatter.requestPermissions().then(privateKey => {
-    //...
-}).catch(error => {
-    // User rejected the request, 
-    // or removed previously granted permissions.
-});
+let eos = Eos.Localnet({httpEndpoint:network.toEndpoint(), signProvider:this.scatter.provider});
 ```
 
-The method above can be called every time a user visits your website.
-If permissions have been previously granted the user will
-not be prompted, instead the private key they associated with
-the website will be provided as authentication.
-
-To further authenticate a user you can have a random message sent to be
-verified against their private key using the public key you have on file.
+Then, you can call transactions normally and it will prompt the user through the provider.
 ```
-scatter.proveIdentity(publicKey).then(verified => {
-    //...
-});
+eos.transfer({from: 'testacc', to: 'inita', amount: 1, memo: ''}).then(result => {
+    //..
+})
 ```
 
+Or even your own transaction
+
+```
+eos.contract('currency').then(currency => 
+    currency.transaction(customTransaction)
+        .then...
+        .catch... )
+```
+
+That's all great, but in a lot of cases it just wont do since you wont know what accounts they have.
+
+For that you can use a scatter method which will push a transaction up to the extension to be signed and sent.
+For it to work though we have to do a few things to our transaction object.
+
+```
+let transaction = {
+    messages: [{
+        code: 'currency',
+        type: 'transfer',
+        authorization: [], // Left out, will be calculated after
+        data:{
+            from:'[scatter]', // Left out, will be calculated after
+            to:'inita',
+            quantity:5
+        }
+    }],
+    scope:['inita'], // Leave out the other
+    signatures:[]
+};
+```
+
+As you can see above you can send any transaction you want, and by adding `[scatter]` into a property's value it will autofill
+when the user selects an account. 
+
+Once you've prepared your transaction you can send it off to be signed inside of the extension. 
+
+```
+window.scatter.signWithAnyAccount(transaction)
+    .then...
+    .catch...
+```
+
+### Check out the [eosjs repo](https://github.com/EOSIO/eosjs) for more information on how to use it to interact 
+with the EOS blockchain from javascript.
 
 
 

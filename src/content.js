@@ -1,6 +1,7 @@
-import { EncryptedStream, LocalStream, AES, RandomIdGenerator, NetworkMessageTypes, NetworkMessage, ScatterError } from 'scattermodels';
+import { EncryptedStream, LocalStream, AES, RandomIdGenerator, NetworkMessageTypes,
+    NetworkMessage, ScatterError, ContractTransaction, EOSService, Network } from 'scattermodels';
 import {InternalMessageTypes} from './messages/InternalMessageTypes';
-import {EOSService} from './services/EOSService'
+import Eos from 'eosjs';
 
 let webStream = new WeakMap();
 class ContentScript {
@@ -32,8 +33,8 @@ class ContentScript {
             case 'sync': this.sync(msg); break;
             case NetworkMessageTypes.REQUEST_PERMISSIONS: this.requestPermissions(nonSyncMessage); break;
             case NetworkMessageTypes.PROVE_IDENTITY: this.proveIdentity(nonSyncMessage); break;
-            case NetworkMessageTypes.REQUEST_SIGNATURE: this.requestSignature(nonSyncMessage); break;
-            case NetworkMessageTypes.GET_BALANCE: this.getBalance(nonSyncMessage); break;
+            case NetworkMessageTypes.REQUEST_SIGNATURE: this.sign(nonSyncMessage); break;
+            case NetworkMessageTypes.SIGN_WITH_ANY: this.signWithAnyAccount(nonSyncMessage); break;
 
             default: webStream.send({type:'default'}, "injected")
         }
@@ -57,85 +58,125 @@ class ContentScript {
         })
     }
 
-    promptSignatureAuthorization(message){
+    signGuard(message, account){
         return new Promise((resolve, reject) => {
-            LocalStream.send(NetworkMessage.payload(InternalMessageTypes.PROMPT_AUTH, message)).then(accepted => {
-                if(typeof accepted !== 'undefined' && accepted) { resolve(true); return; }
+            message.payload.allowedAccounts = account;
+            LocalStream.send(NetworkMessage.payload(InternalMessageTypes.PROMPT_AUTH, message)).then(publicKey => {
+                if(typeof publicKey !== 'undefined' && publicKey) { resolve(publicKey); return; }
                 this.rejectWithError(message.error(new ScatterError("not_authorized", "The user did not authorize the signing of this transaction.")), reject);
             })
         })
     }
 
-
-
+    lockAndSignGuard(message, account = null){
+        return new Promise((resolve, reject) => {
+            this.lockGuard(message).then(locked => {
+                setTimeout(() => this.signGuard(message, account).then(publicKey => resolve(publicKey)).catch(e => reject(e)), 100)
+            }).catch(e => reject(e));
+        });
+    }
 
     requestPermissions(message){
         this.lockGuard(message).then(locked => {
             console.log("requestPermissions", message)
             webStream.send(message.respond('hello world'), "injected");
-            // LocalStream.send(message)
         }).catch(() => {});
 
     }
 
     proveIdentity(message){
         console.log("proveIdentity")
+    }
+
+
+    sign(message){
+        let allowedAccounts = message.payload.transaction.messages.map(x => x.authorization).reduce((a,b) => a.concat(b), []);
+        this.lockAndSignGuard(message, allowedAccounts).then(keyPair => {
+            LocalStream.send(NetworkMessage.payload(InternalMessageTypes.PUBLIC_TO_PRIVATE, keyPair.publicKey)).then(privateKey => {
+                if(!privateKey) {
+                    this.rejectWithError(message.error(new ScatterError("private_key", "The user tried using an invalid private key.")), null);
+                    return;
+                }
+
+                let signed = EOSService.sign(new Buffer(message.payload.buf.data), privateKey);
+                webStream.send(message.respond([signed]), "injected");
+            }).catch(e => { console.log("CONTENTJS ERROR: ", e); webStream.send(message.error(new ScatterError('bad_key', "Couldn't fetch key")), "injected") })
+        })
 
     }
 
-    requestSignature(message){
-        this.lockGuard(message).then(locked => {
-            setTimeout(() => {
-                this.promptSignatureAuthorization(message).then(authorized => {
-                    console.log("APPROVED")
-                    // EOSService.abiJsonToBin(message.payload.message.code, message.payload.message.type, message.payload.data).then(binargs => {
-                    //     let publicKey = 'EOS7evxmxC21W9gnKbNgzrjMm5AmYLsq9ZDS8y8KMRy3z4QqqpqsD';
-                    //     LocalStream.send(NetworkMessage.payload(InternalMessageTypes.PUBLIC_TO_PRIVATE, publicKey)).then(privateKey => {
-                    //         if(!privateKey) {
-                    //             this.rejectWithError(message.error(new ScatterError("private_key",
-                    //                 "The user tried using an invalid private key, this is probably a program error.")), null);
-                    //             return;
-                    //         }
-                    //
-                    //         let signature = EOSService.sign(binargs, privateKey);
-                    //
-                    //         let msgbin = Object.assign({}, message.payload.message);
-                    //         msgbin.data = binargs;
-                    //
-                    //
-                    //         EOSService.getLatestBlock().then(block => {
-                    //             console.log("BLOCK", block)
-                    //
-                    //             let trx = {
-                    //                 refBlockNum:block.block_num,
-                    //                 refBlockPrefix:block.ref_block_prefix,
-                    //                 expiration:'',
-                    //                 scope:[message.payload.data.from, message.payload.data.to],
-                    //                 messages:[
-                    //                     msgbin
-                    //                 ],
-                    //                 signatures:[signature]
-                    //             };
-                    //             console.log("trx: ", trx)
-                    //         })
-                    //
-                    //
-                    //     }).catch(e => {
-                    //         console.log("CONTENTJS ERROR: ", e)
-                    //     })
-                    //     // webStream.send(message.respond(message), "injected");
-                    // })
-                }).catch(() => {})
-            }, 100)
-        }).catch(() => {});
+    signWithAnyAccount(message){
+        console.log("signWithAnyAccount", message)
+        let trx = Object.assign({}, message.payload);
+        message.payload = {transaction:trx}
 
+        // TODO: Filter for only keys associated with accounts
+        // TODO: Really, all keys should have accounts.
+        // TODO: Make scatter able to create and stake accounts
+        // To compensate for stake, scatter could allow only 1 generated account at a time
+        // and then reclaim the stake after the first transfer from the account.
+        this.lockAndSignGuard(message).then(keyPair => {
+            let network = Network.fromJson(message.network);
+            let transaction = message.payload;
+
+            console.log('keyPair', keyPair)
+
+            let account = keyPair.accounts.find(x => x.authority === 'active');
+            if(!account) {
+                webStream.send(message.error(new ScatterError('no_account', "The key the user selected doesn't belong to an account yet")), "injected");
+                return;
+            }
+
+            // TODO: Move this into a transformer
+            trx.scope.push(account.name)
+            function morphScatterProps(obj){
+                Object.keys(obj).map(key => {
+                    if(obj[key] === '[scatter]') obj[key] = account.name;
+                });
+            }
+            trx.messages.map(msg => {
+                morphScatterProps(msg.data);
+                msg.authorization = msg.authorization.concat([{account:account.name, permission:account.authority}])
+            });
+            morphScatterProps(trx.data);
+
+            LocalStream.send(NetworkMessage.payload(InternalMessageTypes.PUBLIC_TO_PRIVATE, keyPair.publicKey)).then(privateKey => {
+                if(!privateKey) {
+                    this.rejectWithError(message.error(new ScatterError("private_key", "The user tried using an invalid private key.")), null);
+                    return;
+                }
+
+                let eos = Eos.Localnet({httpEndpoint:network.toEndpoint(), keyProvider:privateKey});
+                let contractMessage = trx.messages[0];
+                eos.abiJsonToBin({code:contractMessage.code, action:contractMessage.type, args:contractMessage.data}).then(bin => {
+                    let bintrx = Object.assign({}, trx);
+                    trx.messages[0].data = bin.binargs;
+                    eos.contract('currency').then(currency => {
+                        currency.transaction(bintrx)
+                            .then(transaction => { webStream.send(message.respond(transaction), "injected"); })
+                            .catch(e => { webStream.send(message.error(new ScatterError('trx_error', e)), "injected") })
+                    })
+                }).catch(e => { webStream.send(message.error(new ScatterError('abi_error', e)), "injected") })
+            }).catch(e => { webStream.send(message.error(new ScatterError('bad_key', "Couldn't fetch key1")), "injected") });
+        });
     }
 
-    getBalance(message){
-        console.log("getBalance")
 
+    messageToSignedTransaction(message, privateKey){
+        console.log(message);
+        return new Promise((resolve, reject) => {
+            let eos = new EOSService(Network.fromJson(message.network).toEndpoint())
+
+            //TODO theres a disconnect between `message` and `messages`
+            eos.abiJsonToBin(message.payload.transaction.messages[0].code, message.payload.transaction.messages[0].type, message.payload.transaction.data).then(binargs => {
+                let signature = eos.sign(binargs, privateKey);
+                resolve(signature)
+            }).catch(e => {
+                console.log("Error: ", e)
+                reject(false)
+            })
+        })
     }
-
 
 
 

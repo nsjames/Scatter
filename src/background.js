@@ -88,7 +88,7 @@ export class Background {
             scatter = this.decrypt(scatter);
             let keys = scatter.data.keychain.wallets.map(x => x.keyPairs).reduce((a,b) => a.concat(b), []);
             let possiblePrivateKey = keys.find(x => x.publicKey === publicKey);
-            if(possiblePrivateKey) sendResponse(possiblePrivateKey.privateKey)
+            if(possiblePrivateKey) sendResponse(possiblePrivateKey.privateKey);
             else sendResponse(null)
         })
     }
@@ -113,7 +113,8 @@ export class Background {
             responder:sendResponse,
             network:message.network,
             transaction:message.payload.transaction,
-            permission:message.payload.permission
+            permission:message.payload.permission,
+            allowedAccounts:(message.payload.hasOwnProperty('allowedAccounts')) ? message.payload.allowedAccounts : null
         }, 600);
     }
 
