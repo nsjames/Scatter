@@ -84,11 +84,11 @@ window.scatter.setNetwork(network);
 
 There's two ways to have a user sign a transaction.
 
-If you already know the account your used uses, you can inject the account for
-them right into `eosjs` and not have to worry about special methods:
+If you already know the account your user uses, you can inject the scatter provider
+right into `eosjs` and not have to worry about any special methods:
 
 ```
-let eos = Eos.Localnet({httpEndpoint:network.toEndpoint(), signProvider:this.scatter.provider});
+let eos = Eos.Localnet({httpEndpoint:network.toEndpoint(), signProvider:window.scatter.provider});
 ```
 
 Then, you can call transactions normally and it will prompt the user through the provider.
