@@ -1,6 +1,7 @@
 import {StorageService} from './services/StorageService'
 import {ScatterData, LocalStream, WaterfallEncryption, AES, NetworkMessage, NetworkMessageTypes} from 'scattermodels'
 import {InternalMessageTypes} from './messages/InternalMessageTypes';
+import {AccountService} from './services/AccountService'
 
 // Does not persist past sessions intentionally.
 let seed = '';
@@ -11,7 +12,6 @@ export class Background {
 
     constructor(){
         LocalStream.watch((request, sendResponse) => {
-            console.log(request);
             let message = NetworkMessage.fromJson(request);
             switch(request.type){
                 case InternalMessageTypes.SEED: Background.setSeed(sendResponse, request.payload); break;
@@ -26,6 +26,7 @@ export class Background {
                 case InternalMessageTypes.UPDATE: Background.update(sendResponse, request.payload); break;
 
                 case InternalMessageTypes.PROMPT_AUTH: Background.promptAuthorization(sendResponse, request.payload); break;
+                case InternalMessageTypes.RECLAIM: Background.reclaim(sendResponse); break;
                 case 'reset': chrome.storage.local.clear(); sendResponse({}); break;
                 // default: sendResponse(null);
             }
@@ -36,6 +37,7 @@ export class Background {
 
     static load(sendResponse){
         StorageService.get().then(scatter => {
+            console.log('load', scatter)
             sendResponse(scatter)
         })
     }
@@ -94,6 +96,7 @@ export class Background {
     }
 
     static update(sendResponse, scatter){
+        console.log('update', scatter)
         //TODO: Only update editable things, to preserve integrity
         scatter = ScatterData.fromJson(scatter);
         scatter.data.keychain.wallets.map(x => {
@@ -108,7 +111,6 @@ export class Background {
 
 
     static promptAuthorization(sendResponse, message){
-        console.log('prompt', message);
         Background.openPrompt(InternalMessageTypes.PROMPT_AUTH, {
             responder:sendResponse,
             network:message.network,
@@ -116,6 +118,28 @@ export class Background {
             permission:message.payload.permission,
             allowedAccounts:(message.payload.hasOwnProperty('allowedAccounts')) ? message.payload.allowedAccounts : null
         }, 600);
+    }
+
+    /***
+     * Happens every time a user spends money.
+     * If there is an unreclaimed account lingering it will be paid for.
+     * @param sendResponse
+     */
+    static reclaim(sendResponse){
+        //TODO: Send notification about reclaiming
+        StorageService.get().then(scatter => {
+            let keyPair = scatter.data.keychain.wallets.map(x => x.keyPairs).reduce((a,b) => a.concat(b), []).find(x => !x.reclaimed);
+            if(keyPair){
+                console.log("Reclaiming account: ", keyPair)
+                AccountService.reclaim(keyPair)
+                    .then(x => {
+                        // Account stake has been reclaimed
+                        keyPair.reclaimed = true;
+                        Background.update(sendResponse, scatter);
+                    })
+                    .catch(x => sendResponse(false))
+            } else sendResponse(false);
+        })
     }
 
 

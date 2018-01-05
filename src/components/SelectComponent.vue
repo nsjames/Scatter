@@ -27,6 +27,6 @@
             changed:function(){ this.$emit('changed', this.selectedOption) }
         },
         props: ['options'],
-        watch: { input: function(n,o) { this.changed(); } }
+        watch: { selectedOption: function(n,o) { this.changed(); } }
     };
 </script>

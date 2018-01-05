@@ -9,5 +9,6 @@ export const InternalMessageTypes = {
     UNLOCK:'unlock',
     KEYCHAIN:'keychain',
     UPDATE:'update',
-    PUBLIC_TO_PRIVATE:'pub2priv'
+    PUBLIC_TO_PRIVATE:'pub2priv',
+    RECLAIM:'reclaim'
 };

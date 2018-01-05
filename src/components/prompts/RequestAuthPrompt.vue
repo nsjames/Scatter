@@ -10,8 +10,6 @@
                 <figure class="host" :title="network.host">{{network.host}}</figure>
             </section>
 
-
-
             <!-- INFO SECTION -->
             <!-- Custom template for standard transfers -->
             <section class="info standard" v-if="isStandardCurrencyTransfer()">
@@ -20,7 +18,7 @@
                 <figure class="quantity">{{transaction.messages[0].data.quantity}}</figure>
 
                 <section>
-                    <figure class="prop-bubble">{{transaction.messages[0].data.from}}</figure>
+                    <figure class="prop-bubble">{{(transaction.messages[0].data.from === '[scatter]') ? selectedKeyPair.publicKey.substr(0, 6) + '...' + selectedKeyPair.publicKey.substr(-4) : transaction.messages[0].data.from }}</figure>
                     <figure class="prop-divider">to</figure>
                     <figure class="prop-bubble blue-only force-right">{{transaction.messages[0].data.to}}</figure>
                 </section>
@@ -36,8 +34,8 @@
 
 
 
-
-            <section class="wallet-placeholder" v-if="selectingKeyPair"></section>
+            <section class="black-over" :class="{'dark':selectingKeyPair}"></section>
+            <section class="wallet-placeholder" :class="{'show':selectingKeyPair}"></section>
             <section class="wallet-select" :class="{'selecting':selectingKeyPair}">
                 <section class="selected" v-on:click="toggleSelectingKeyPair">
                     <section class="wallet">
@@ -92,7 +90,7 @@
                 </section>
 
                 <section class="contract-props" v-if="structureType === 'props'">
-                    <recursive-list v-bind:kvmap="transaction.data"></recursive-list>
+                    <recursive-list v-bind:kvmap="transaction.data" v-bind:selected-key-pair="selectedKeyPair"></recursive-list>
                 </section>
 
                 <section class="contract-json" v-if="structureType === 'json'">

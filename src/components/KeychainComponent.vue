@@ -98,9 +98,7 @@
                     <section v-if="!keyPair.removed">
                         <section class="keypair-accounts">
 
-
-                            <!-- causing some kind of loop problem -->
-                            <figure class="authority" :class="{'warn':keyPair.hasOwnerAuthority()}">
+                            <section class="authority" v-if="keyPair.getHighestAuthority() !== 'No account found'" :class="{'warn':keyPair.hasOwnerAuthority()}">
                                 {{keyPair.getHighestAuthority()}}
                                 <figure class="info" v-if="keyPair.accounts.length">
                                     <i class="fa fa-info"></i>
@@ -111,7 +109,11 @@
                                         </section>
                                     </section>
                                 </figure>
-                            </figure>
+                            </section>
+
+                            <section class="authority" v-else>
+                                <input class="account-name-input" v-model="keyPair.tempName" placeholder="Name this account" />
+                            </section>
 
 
 
@@ -152,9 +154,10 @@
 </template>
 <script>
     import Vue from 'vue';
-    import {KeyPair, Wallet, ScatterData, LocalStream, NetworkMessage, EOSService} from 'scattermodels'
+    import {Keychain, KeyPair, Wallet, ScatterData, LocalStream, NetworkMessage} from 'scattermodels'
     import {EOSKeygen} from '../cryptography/EOSKeygen'
     import {InternalMessageTypes} from '../messages/InternalMessageTypes';
+    import {AccountService} from '../services/AccountService';
 
     export default {
         data() {
@@ -184,13 +187,12 @@
             selectListState:function(state){ this.listState = state; },
             selectingWallet:function(){ return this.listState === this.listStates.CHOOSE_WALLET; },
             toggleSelectingWallet:function(){ this.selectListState(this.selectingWallet() ? this.listStates.HISTORY : this.listStates.CHOOSE_WALLET); },
+            createNewWallet:function(){ this.openedWallet = Wallet.newWallet(); },
             selectWallet:function(name){
-                console.log(`Opening wallet ${name}`)
                 LocalStream.send(NetworkMessage.payload(InternalMessageTypes.OPEN, name)).then(response => {
-                    console.log("Response?: ", response)
                     //TODO: Error handling
                     if(!response) {
-                        console.log(`There was an issue opening this wallet: ${name}`);
+                        alert(`There was an issue opening this wallet: ${name}`);
                         return false;
                     }
 
@@ -201,20 +203,14 @@
                 })
             },
 
-            createNewWallet:function(){
-
-                this.openedWallet = Wallet.newWallet();
-            },
 
 
-            // Editing a wallet ------------------------------------
-            // -----------------------------------------------------
             edit:function(){
                 this.preEditedWallet = this.openedWallet.clone();
                 LocalStream.send(NetworkMessage.signal(InternalMessageTypes.KEYCHAIN)).then(response => {
                     //TODO: Error handling
                     if(!response) {
-                        console.log("There was an issue decrypting the wallet")
+                        alert("There was an issue decrypting the wallet")
                         return false;
                     }
 
@@ -227,6 +223,7 @@
 
             importPrivateKey:function(){
                 let keyPair = this.newKeyPair.clone();
+
                 //TODO: Error handling
                 if(!EOSKeygen.validPrivateKey(keyPair.privateKey)) {
                     alert("invalid private key")
@@ -238,19 +235,32 @@
                     return false;
                 }
 
-                //TODO CHANGE THE NETWORK PROVIDER HANDLING
-                let eos = new EOSService('http://192.168.56.101:8888');
+                keyPair.network = Vue.prototype.scatterData.data.settings.currentNetwork.clone();
+                console.log(keyPair, Vue.prototype.scatterData.data.settings)
+                AccountService.findAccount(keyPair).then(keyPairAccounts => {
+                    if(!keyPairAccounts.length) {
+                        // TODO Error handling
+                        alert('Imported keys must already be associated with an account');
+                        this.newKeyPair = KeyPair.placeholder();
+                        return false;
+                    }
 
-
-                eos.getAccountsFromPublicKey(keyPair.publicKey).then(keyPairAccounts => {
                     keyPair.setAccounts(keyPairAccounts);
+                    keyPair.reclaimed = true;
                     this.openedWallet.keyPairs.push(keyPair);
                     this.newKeyPair = KeyPair.placeholder();
                 })
             },
 
             generateNewKey:function(){
+                //TODO Error handling
+
+                if(this.wallets.concat(this.openedWallet).find(x => x.hasUnreclaimedKey())){
+                    alert('You must pay back your account fees before creating another key.')
+                    return false;
+                }
                 this.newKeyPair = EOSKeygen.generateKeys();
+                this.newKeyPair.network = Vue.prototype.scatterData.data.settings.currentNetwork.clone();
                 if(!this.openedWallet.keyPairs.length) this.openedWallet.defaultPublicKey = this.newKeyPair.publicKey;
                 this.openedWallet.keyPairs.push(this.newKeyPair);
                 this.newKeyPair = KeyPair.placeholder();
@@ -273,20 +283,38 @@
                     return false;
                 }
 
-                if(this.wallets.length) this.wallets = this.wallets.filter(x => x.uniqueKey !== this.preEditedWallet.uniqueKey);
-                this.wallets.push(this.openedWallet);
-
-                let scatter = Vue.prototype.scatterData.clone();
-                scatter.data.keychain.wallets = this.wallets;
-
-                ScatterData.update(scatter).then(saved => {
-                    Vue.prototype.scatterData = ScatterData.fromJson(saved);
-                    this.wallets = Vue.prototype.scatterData.data.keychain.wallets;
-                    this.openedWallet = this.wallets.find(x => x.lastOpened);
-                    this.openedWallet.stopEditing();
-                })
+                let newKeyPair = this.wallets.concat(this.openedWallet).map(x => x.keyPairs).reduce((a,b) => a.concat(b), []).find(key => !key.accounts.length);
+                console.log('new key pair?', newKeyPair)
+                let accountCreated = null;
+                if(newKeyPair){
+                    if(!newKeyPair.hasOwnProperty('tempName') || !newKeyPair.tempName || !newKeyPair.tempName.length){
+                        alert('New accounts must be named');
+                        return false;
+                    }
+                    accountCreated = AccountService.createAccount(newKeyPair, newKeyPair.tempName);
+                } else accountCreated = new Promise((res,rej) => res(''));
 
 
+                accountCreated
+                    .then(trx_id => {
+                        let scatter = Vue.prototype.scatterData.clone();
+
+                        if(this.wallets.length) scatter.data.keychain.wallets = this.wallets.filter(x => x.uniqueKey !== this.preEditedWallet.uniqueKey);
+                        scatter.data.keychain.wallets.push(this.openedWallet);
+
+                        ScatterData.update(scatter).then(saved => {
+                            Vue.prototype.scatterData = ScatterData.fromJson(saved);
+                            this.wallets = Vue.prototype.scatterData.data.keychain.wallets;
+                            this.openedWallet = this.wallets.find(x => x.lastOpened);
+                            this.openedWallet.stopEditing();
+                        })
+                    })
+                    .catch(err => {
+                        //TODO: Error handling
+                        if(err === 'exists') alert('This account name already exists');
+                        else console.log(err);
+                        return false;
+                    });
             },
             cancelEditing:function(){
                 //TODO: Error checking

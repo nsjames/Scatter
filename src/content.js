@@ -1,7 +1,9 @@
 import { EncryptedStream, LocalStream, AES, RandomIdGenerator, NetworkMessageTypes,
-    NetworkMessage, ScatterError, ContractTransaction, EOSService, Network } from 'scattermodels';
+    NetworkMessage, ScatterError, ContractTransaction, Network } from 'scattermodels';
 import {InternalMessageTypes} from './messages/InternalMessageTypes';
+import {AccountService} from './services/AccountService'
 import Eos from 'eosjs';
+import ecc from 'eosjs-ecc';
 
 let webStream = new WeakMap();
 class ContentScript {
@@ -88,6 +90,9 @@ class ContentScript {
         console.log("proveIdentity")
     }
 
+    reclaimAccount(){
+        LocalStream.send(NetworkMessage.signal(InternalMessageTypes.RECLAIM))
+    }
 
     sign(message){
         let allowedAccounts = message.payload.transaction.messages.map(x => x.authorization).reduce((a,b) => a.concat(b), []);
@@ -98,8 +103,9 @@ class ContentScript {
                     return;
                 }
 
-                let signed = EOSService.sign(new Buffer(message.payload.buf.data), privateKey);
+                let signed = ecc.sign(new Buffer(message.payload.buf.data), privateKey);
                 webStream.send(message.respond([signed]), "injected");
+                this.reclaimAccount();
             }).catch(e => { console.log("CONTENTJS ERROR: ", e); webStream.send(message.error(new ScatterError('bad_key', "Couldn't fetch key")), "injected") })
         })
 
@@ -153,29 +159,15 @@ class ContentScript {
                     trx.messages[0].data = bin.binargs;
                     eos.contract('currency').then(currency => {
                         currency.transaction(bintrx)
-                            .then(transaction => { webStream.send(message.respond(transaction), "injected"); })
+                            .then(transaction => {
+                                webStream.send(message.respond(transaction), "injected");
+                                this.reclaimAccount();
+                            })
                             .catch(e => { webStream.send(message.error(new ScatterError('trx_error', e)), "injected") })
                     })
                 }).catch(e => { webStream.send(message.error(new ScatterError('abi_error', e)), "injected") })
             }).catch(e => { webStream.send(message.error(new ScatterError('bad_key', "Couldn't fetch key1")), "injected") });
         });
-    }
-
-
-    messageToSignedTransaction(message, privateKey){
-        console.log(message);
-        return new Promise((resolve, reject) => {
-            let eos = new EOSService(Network.fromJson(message.network).toEndpoint())
-
-            //TODO theres a disconnect between `message` and `messages`
-            eos.abiJsonToBin(message.payload.transaction.messages[0].code, message.payload.transaction.messages[0].type, message.payload.transaction.data).then(binargs => {
-                let signature = eos.sign(binargs, privateKey);
-                resolve(signature)
-            }).catch(e => {
-                console.log("Error: ", e)
-                reject(false)
-            })
-        })
     }
 
 

@@ -59,7 +59,6 @@
                     Vue.prototype.scatterData = res.scatter;
                     //TODO: Display mnemonic instead before routing to 'keychain'
                     console.log('mnemonic', res.mnemonic);
-
                     this.keychainAvailable = true;
                     this.$router.push({name:'keychain'});
                 }).catch(badPassword => {

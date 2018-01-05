@@ -1,7 +1,7 @@
 import {PasswordHasher} from '../cryptography/PasswordHasher';
 import {InternalMessageTypes} from '../messages/InternalMessageTypes';
 import {Mnemonic} from '../cryptography/Mnemonic';
-import {LocalStream, ScatterData, NetworkMessage} from 'scattermodels'
+import {LocalStream, ScatterData, NetworkMessage, Network} from 'scattermodels'
 
 export class AuthenticationService {
 
@@ -31,6 +31,12 @@ export class AuthenticationService {
             let [mnemonic, seed] = Mnemonic.generateMnemonic(password);
             scatter.data.hash = PasswordHasher.hash(password);
             LocalStream.send(NetworkMessage.payload(InternalMessageTypes.SEED, seed)).then(res => {
+
+                let testnet = new Network('Testnet', 'testnet1.eos.io', 8888);
+                let local = new Network('Localnet', '192.168.56.101', 8888)
+                scatter.data.settings.networks = [local, testnet];
+                scatter.data.settings.currentNetwork = local;
+
                 ScatterData.update(scatter).then(saved => {
                     let updatedScatter = ScatterData.fromJson(saved);
                     resolve({scatter:updatedScatter, mnemonic});

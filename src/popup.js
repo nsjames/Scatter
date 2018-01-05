@@ -8,6 +8,7 @@ import ButtonComponent from './components/ButtonComponent.vue'
 import InputComponent from './components/InputComponent.vue'
 import SelectComponent from './components/SelectComponent.vue'
 import {InternalMessageTypes} from './messages/InternalMessageTypes';
+import {AccountService} from './services/AccountService';
 
 Vue.config.productionTip = false
 Vue.use(VueRouter)
