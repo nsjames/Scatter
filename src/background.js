@@ -6,8 +6,6 @@ import {AccountService} from './services/AccountService'
 // Does not persist past sessions intentionally.
 let seed = '';
 
-
-
 export class Background {
 
     constructor(){
@@ -37,7 +35,7 @@ export class Background {
 
     static load(sendResponse){
         StorageService.get().then(scatter => {
-            console.log('load', scatter)
+            console.log(scatter)
             sendResponse(scatter)
         })
     }
@@ -96,7 +94,7 @@ export class Background {
     }
 
     static update(sendResponse, scatter){
-        console.log('update', scatter)
+        console.log('updating', scatter);
         //TODO: Only update editable things, to preserve integrity
         scatter = ScatterData.fromJson(scatter);
         scatter.data.keychain.wallets.map(x => {
@@ -121,23 +119,34 @@ export class Background {
     }
 
     /***
-     * Happens every time a user spends money.
+     * Happens every time a user sends coins.
      * If there is an unreclaimed account lingering it will be paid for.
      * @param sendResponse
      */
     static reclaim(sendResponse){
-        //TODO: Send notification about reclaiming
+        //TODO: Send notification about reclaiming ( from background to ui, needs to be persisted to queue for next time the extension is open )
         StorageService.get().then(scatter => {
             let keyPair = scatter.data.keychain.wallets.map(x => x.keyPairs).reduce((a,b) => a.concat(b), []).find(x => !x.reclaimed);
-            if(keyPair){
-                console.log("Reclaiming account: ", keyPair)
-                AccountService.reclaim(keyPair)
-                    .then(x => {
-                        // Account stake has been reclaimed
-                        keyPair.reclaimed = true;
-                        Background.update(sendResponse, scatter);
-                    })
-                    .catch(x => sendResponse(false))
+            if(keyPair && keyPair.accounts.length){
+                this.publicToPrivate((privateKey) => {
+                    if(!privateKey) {
+                        console.warn('Something is wrong with private key encryption');
+                        return false;
+                    }
+
+                    AccountService.reclaim(keyPair.accounts[0], privateKey, keyPair.network)
+                        .then(reclaimed => {
+                            if(reclaimed) {
+                                keyPair.reclaimed = true;
+                                Background.update(sendResponse, scatter);
+                            }
+                            else sendResponse(false);
+                        })
+                        .catch(x => {
+                            console.log("Err: ", x)
+                            sendResponse(false)
+                        })
+                }, keyPair.publicKey)
             } else sendResponse(false);
         })
     }

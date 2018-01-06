@@ -17,7 +17,6 @@
             };
         },
         methods: {
-            setData:function(obj){ console.log("Setting data: ", obj); },
             updateNetwork:function(networkName){
                 const network = Vue.prototype.scatterData.data.settings.networks.find(x => x.name === networkName);
                 if(network)  Vue.prototype.scatterData.data.settings.networks.currentNetwork = network;

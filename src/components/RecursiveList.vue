@@ -6,7 +6,7 @@
                 <recursive-list v-bind:kvmap="value" v-bind:selected-key-pair="selectedKeyPair" recursive="true"></recursive-list>
             </figure>
             <figure class="prop-bubble" :class="{'array-item':(typeof value !== 'object' && !nonNumeric(key))}" v-else>
-                {{(value === '[scatter]') ? selectedKeyPair.publicKey.substr(0, 6)+'...'+selectedKeyPair.publicKey.substr(-4) : value}}
+                {{(value === '[scatter]') ? selectedKeyPair.getHighestAuthorityName() : value}}
             </figure>
         </section>
     </section>

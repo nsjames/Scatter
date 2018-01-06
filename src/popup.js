@@ -5,13 +5,15 @@ import AuthComponent from './components/AuthComponent.vue'
 import KeychainComponent from './components/KeychainComponent.vue'
 import SettingsComponent from './components/SettingsComponent.vue'
 import ButtonComponent from './components/ButtonComponent.vue'
+import WorkingAlert from './components/alerts/WorkingAlert.vue'
+import ErrorAlert from './components/alerts/ErrorAlert.vue'
 import InputComponent from './components/InputComponent.vue'
 import SelectComponent from './components/SelectComponent.vue'
 import {InternalMessageTypes} from './messages/InternalMessageTypes';
-import {AccountService} from './services/AccountService';
+import {ui} from './ui';
 
-Vue.config.productionTip = false
-Vue.use(VueRouter)
+Vue.config.productionTip = false;
+Vue.use(VueRouter);
 
 let router = null;
 
@@ -31,29 +33,19 @@ LocalStream.send(NetworkMessage.signal(InternalMessageTypes.LOAD)).then(scatter 
 
 });
 
-let app = new WeakMap();
-
-
 function setupApp(){
-
     setupRouting();
+    setupGlobals();
     registerReusableComponents();
-
-    
-
-    app = new Vue({
-        router:router
-    }).$mount('#scatter');
-
-    Vue.prototype.scatterReady = true;
-
-
+    new Vue({router}).$mount('#scatter');
 }
 
 function registerReusableComponents(){
     Vue.component('scatter-button', ButtonComponent);
     Vue.component('scatter-input', InputComponent);
     Vue.component('scatter-select', SelectComponent);
+    Vue.component('working-alert', WorkingAlert);
+    Vue.component('error-alert', ErrorAlert);
 }
 
 function setupRouting(){
@@ -66,25 +58,14 @@ function setupRouting(){
             default:next()
         }
     });
+}
 
-    Vue.prototype.toggleSettings = () => {
-        router.push({name:(router.currentRoute.name === 'settings' ? 'auth' :'settings')});
-    }
-    // TODO: Adding global methods here for now.
-    Vue.prototype.truncateKey = (key) => { return (key.length) ? key.substr(0, 3) + '.....' + key.substr(key.length -4) : ''; }
+function setupGlobals(){
+    window.ui = ui;
+    Vue.prototype.toggleSettings = () => router.push({name:(router.currentRoute.name === 'settings' ? 'auth' :'settings')});
     Vue.prototype.hideSettingsButton = false;
 }
 
-function beforeAuth(next){
-    if(!Vue.prototype.scatterData.data.keychain.locked) next({name:'keychain'});
-    else next()
-}
-
-function beforeKeychain(next){
-    if(Vue.prototype.scatterData.data.keychain.locked) next({name:'auth'});
-    else next()
-}
-
-function beforeSettings(next){
-    next()
-}
+function beforeAuth(next){ if(!Vue.prototype.scatterData.data.keychain.locked) next({name:'keychain'}); else next() }
+function beforeKeychain(next){ if(Vue.prototype.scatterData.data.keychain.locked) next({name:'auth'}); else next() }
+function beforeSettings(next){ next() }

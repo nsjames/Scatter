@@ -1,7 +1,6 @@
 <template>
     <section class="auth-component">
         <section class="inputs-container">
-
             <section v-if="!keychainAvailable">
                 <scatter-select v-bind:options="[CREATE_NEW_KEYCHAIN, IMPORT_A_KEYCHAIN]" v-on:changed="updateSelectedKeychainOption"></scatter-select>
                 <section v-if="selectedKeychainOption === CREATE_NEW_KEYCHAIN">
@@ -19,7 +18,7 @@
             <section v-else>
                 <scatter-input icon="fa-lock" type="password" placeholder="Password" v-on:changed="updatePassword"></scatter-input>
                 <scatter-button text="Unlock Keychain" ref="unlockButton" v-on:clicked="unlockKeychain();"></scatter-button>
-                <figure v-on:click="reset" class="forgot">Recover from seed phrase</figure>
+                <figure v-on:click="" class="forgot">Recover from seed phrase</figure>
             </section>
         </section>
     </section>
@@ -33,14 +32,16 @@
     import {InternalMessageTypes} from '../messages/InternalMessageTypes';
     import {AuthenticationService} from '../services/AuthenticationService';
 
+    const CREATE_NEW_KEYCHAIN = 'Create new keychain';
+    const IMPORT_A_KEYCHAIN = 'Import a keychain';
     export default {
         data() {
             return {
-                CREATE_NEW_KEYCHAIN:'Create new keychain',
-                IMPORT_A_KEYCHAIN:'Import a keychain',
+                CREATE_NEW_KEYCHAIN:CREATE_NEW_KEYCHAIN,
+                IMPORT_A_KEYCHAIN:IMPORT_A_KEYCHAIN,
 
                 keychainAvailable:Vue.prototype.scatterData.data.hash !== '',
-                selectedKeychainOption:'Create new keychain',
+                selectedKeychainOption:CREATE_NEW_KEYCHAIN,
                 keychain:null,
                 keychainJson:{},
 
@@ -48,13 +49,11 @@
             };
         },
         methods: {
-            setData:function(obj){ console.log("Setting data: ", obj); },
             updatePassword:function(x){ this.password = x; },
             updateKeychainJson:function(x){ this.keychainJson = x; },
             updateSelectedKeychainOption:function(x){ this.selectedKeychainOption = x; },
 
             createNewKeychain:function(){
-
                 AuthenticationService.create(this.password, Vue.prototype.scatterData).then(res => {
                     Vue.prototype.scatterData = res.scatter;
                     //TODO: Display mnemonic instead before routing to 'keychain'
@@ -62,6 +61,7 @@
                     this.keychainAvailable = true;
                     this.$router.push({name:'keychain'});
                 }).catch(badPassword => {
+                    window.ui.pushError('Password Error', 'Passwords must be at least 8 characters long.');
                     this.$refs.createButton.errored();
                 })
             },
@@ -70,22 +70,10 @@
                 AuthenticationService.authenticate(this.password, Vue.prototype.scatterData.data.hash).then(scatter => {
                     Vue.prototype.scatterData = scatter;
                     this.$router.push('keychain');
-                }).catch(badPassword => {
-                    this.$refs.unlockButton.errored();
-                })
-
+                }).catch(badPassword => this.$refs.unlockButton.errored())
             },
 
-            importKeychainFromJson:function(){},
-
-
-            //FOR TESTING ONLY, REMOVE FOR PRODUCTION
-            reset:function(){
-//                chrome.runtime.sendMessage({ msg: "reset" }, (response) => {
-//                    Vue.prototype.scatterData = ScatterData.fromJson(response);
-//                });
-            },
-            log:function(msg){ console.log("MSG", msg) }
+            importKeychainFromJson:function(){}
         }
 
     };

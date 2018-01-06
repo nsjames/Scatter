@@ -1,7 +1,6 @@
 import { EncryptedStream, LocalStream, AES, RandomIdGenerator, NetworkMessageTypes,
     NetworkMessage, ScatterError, ContractTransaction, Network } from 'scattermodels';
 import {InternalMessageTypes} from './messages/InternalMessageTypes';
-import {AccountService} from './services/AccountService'
 import Eos from 'eosjs';
 import ecc from 'eosjs-ecc';
 
@@ -18,17 +17,14 @@ class ContentScript {
     }
 
     injectScript(){
-        let s = document.createElement('script');
-        s.src = chrome.extension.getURL('inject.js');
-        (document.head||document.documentElement).appendChild(s);
-        s.onload = function() {
-            s.remove();
-        };
+        let script = document.createElement('script');
+        script.src = chrome.extension.getURL('inject.js');
+        (document.head||document.documentElement).appendChild(script);
+        script.onload = function() { script.remove(); };
     }
 
     contentListener(msg){
         if(!webStream.synced && (!msg.hasOwnProperty('type') || msg.type !== 'sync')) { webStream.send({type:'error'}, "mal-warn"); return; }
-
         let nonSyncMessage = NetworkMessage.fromJson(msg);
 
         switch(msg.type){
@@ -38,18 +34,15 @@ class ContentScript {
             case NetworkMessageTypes.REQUEST_SIGNATURE: this.sign(nonSyncMessage); break;
             case NetworkMessageTypes.SIGN_WITH_ANY: this.signWithAnyAccount(nonSyncMessage); break;
 
-            default: webStream.send({type:'default'}, "injected")
+            default: this.rejectWithError(nonSyncMessage.error(new ScatterError('bad_msg', 'No such message can be parsed')))
         }
     }
-
-
 
     sync(message){
         webStream.key = message.handshake.length ? message.handshake : null;
         webStream.synced = true;
         webStream.send({type:'sync'}, "injected");
     }
-
 
     lockGuard(message){
         return new Promise((resolve, reject) => {
@@ -78,104 +71,87 @@ class ContentScript {
         });
     }
 
+    reclaimAccount(){ LocalStream.send(NetworkMessage.signal(InternalMessageTypes.RECLAIM)) }
+
+
+
+
     requestPermissions(message){
         this.lockGuard(message).then(locked => {
-            console.log("requestPermissions", message)
-            webStream.send(message.respond('hello world'), "injected");
+            this.respond(message, 'NOT YET IMPLEMENTED');
         }).catch(() => {});
-
     }
 
     proveIdentity(message){
-        console.log("proveIdentity")
+        this.lockGuard(message).then(locked => {
+            this.respond(message, 'NOT YET IMPLEMENTED');
+        }).catch(() => {});
     }
 
-    reclaimAccount(){
-        LocalStream.send(NetworkMessage.signal(InternalMessageTypes.RECLAIM))
-    }
+
+
+
 
     sign(message){
         let allowedAccounts = message.payload.transaction.messages.map(x => x.authorization).reduce((a,b) => a.concat(b), []);
         this.lockAndSignGuard(message, allowedAccounts).then(keyPair => {
             LocalStream.send(NetworkMessage.payload(InternalMessageTypes.PUBLIC_TO_PRIVATE, keyPair.publicKey)).then(privateKey => {
                 if(!privateKey) {
-                    this.rejectWithError(message.error(new ScatterError("private_key", "The user tried using an invalid private key.")), null);
+                    this.rejectWithError(message.error(new ScatterError("private_key", "The user tried using an invalid private key.")));
                     return;
                 }
 
                 let signed = ecc.sign(new Buffer(message.payload.buf.data), privateKey);
-                webStream.send(message.respond([signed]), "injected");
+                this.respond(message, [signed]);
                 this.reclaimAccount();
-            }).catch(e => { console.log("CONTENTJS ERROR: ", e); webStream.send(message.error(new ScatterError('bad_key', "Couldn't fetch key")), "injected") })
+            }).catch(e => { this.rejectWithError(message.error(new ScatterError('bad_key', "Couldn't fetch key"))) })
         })
 
     }
 
+
+
     signWithAnyAccount(message){
-        console.log("signWithAnyAccount", message)
         let trx = Object.assign({}, message.payload);
         message.payload = {transaction:trx}
 
-        // TODO: Filter for only keys associated with accounts
-        // TODO: Really, all keys should have accounts.
-        // TODO: Make scatter able to create and stake accounts
-        // To compensate for stake, scatter could allow only 1 generated account at a time
-        // and then reclaim the stake after the first transfer from the account.
         this.lockAndSignGuard(message).then(keyPair => {
             let network = Network.fromJson(message.network);
             let transaction = message.payload;
 
-            console.log('keyPair', keyPair)
-
+            // TODO: Allow user to select authority
             let account = keyPair.accounts.find(x => x.authority === 'active');
             if(!account) {
-                webStream.send(message.error(new ScatterError('no_account', "The key the user selected doesn't belong to an account yet")), "injected");
+                this.rejectWithError(message.error(new ScatterError('no_account', "The key the user selected doesn't belong to an account yet")));
                 return;
             }
 
-            // TODO: Move this into a transformer
-            trx.scope.push(account.name)
-            function morphScatterProps(obj){
-                Object.keys(obj).map(key => {
-                    if(obj[key] === '[scatter]') obj[key] = account.name;
-                });
-            }
-            trx.messages.map(msg => {
-                morphScatterProps(msg.data);
-                msg.authorization = msg.authorization.concat([{account:account.name, permission:account.authority}])
-            });
-            morphScatterProps(trx.data);
+            ContractTransaction.replaceScatterProps(trx, account);
 
             LocalStream.send(NetworkMessage.payload(InternalMessageTypes.PUBLIC_TO_PRIVATE, keyPair.publicKey)).then(privateKey => {
                 if(!privateKey) {
-                    this.rejectWithError(message.error(new ScatterError("private_key", "The user tried using an invalid private key.")), null);
+                    this.rejectWithError(message.error(new ScatterError("private_key", "The user tried using an invalid private key.")));
                     return;
                 }
 
+                //TODO Add support for multi message transactions
                 let eos = Eos.Localnet({httpEndpoint:network.toEndpoint(), keyProvider:privateKey});
                 let contractMessage = trx.messages[0];
-                eos.abiJsonToBin({code:contractMessage.code, action:contractMessage.type, args:contractMessage.data}).then(bin => {
-                    let bintrx = Object.assign({}, trx);
-                    trx.messages[0].data = bin.binargs;
-                    eos.contract('currency').then(currency => {
-                        currency.transaction(bintrx)
-                            .then(transaction => {
-                                webStream.send(message.respond(transaction), "injected");
-                                this.reclaimAccount();
-                            })
-                            .catch(e => { webStream.send(message.error(new ScatterError('trx_error', e)), "injected") })
-                    })
-                }).catch(e => { webStream.send(message.error(new ScatterError('abi_error', e)), "injected") })
-            }).catch(e => { webStream.send(message.error(new ScatterError('bad_key', "Couldn't fetch key1")), "injected") });
+                eos.contract(contractMessage.code).then(contract => {
+                    contract.transaction(trx)
+                        .then(transaction => {
+                            this.respond(message, transaction);
+                            this.reclaimAccount();
+                        })
+                        .catch(e => { this.rejectWithError(message.error(new ScatterError('trx_error', e))) })
+                }).catch(e => { this.rejectWithError(message.error(new ScatterError('no_contract', "Couldn't fetch contract with code: " + contractMessage.code))) });
+            }).catch(e => { this.rejectWithError(message.error(new ScatterError('bad_key', "Couldn't fetch private key"))) });
         });
     }
 
 
-
-    rejectWithError(err, reject){
-        webStream.send(err, "injected");
-        if(reject) reject(err);
-    }
+    respond(message, payload){ webStream.send(message.respond(payload), "injected"); }
+    rejectWithError(err, reject = null){ webStream.send(err, "injected"); if(reject) reject(err); }
 
 }
 

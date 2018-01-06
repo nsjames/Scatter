@@ -20,7 +20,6 @@ export class EOSKeygen {
     }
 
     static validPrivateKey(privateKey){
-        console.log(privateKey);
         return PrivateKey.isValid(privateKey);
     }
 

@@ -19,7 +19,6 @@
             close:function(){this.open = false;},
             toggle:function(){this.open = !this.open;},
             selectOption:function(option){
-                console.log("OPTION", option)
                 this.selectedOption = option;
                 this.changed();
                 this.close();

@@ -1139,6 +1139,7 @@ button {
         font-weight:bold;
         width:100%;
         color:rgba(0,0,0,0.7);
+        vertical-align: top;
       }
 
       .quantity, .symbol, .key {
@@ -1146,6 +1147,7 @@ button {
         margin-right:10px;
         font-size:9px;
         width:calc(33.3% - 10px);
+        vertical-align: top;
       }
 
       .quantity, .symbol {
@@ -1434,6 +1436,166 @@ button {
 
 
 }
+
+.alert {
+  position:fixed;
+  top:0;
+  bottom:0;
+  left:0;
+  right:0;
+  z-index:10002;
+  visibility:hidden;
+  opacity:0;
+  transition:opacity 0.2s ease;
+
+  &.show {
+    opacity:1;
+    visibility:visible;
+  }
+
+  &.working {
+    padding:220px 20px;
+    text-align:center;
+    background:rgba(255,255,255,0.99);
+
+    .wait-logo {
+      font-family:'Grand Hotel',sans-serif;
+      font-size:48px;
+      color: $dark-gray;
+      display:inline-block;
+      animation: pulse 2.0s linear infinite;
+      //text-shadow:0 0 150px $dark-gray, 0 2px 6px rgba(255,255,255,0.2), 0 -1px 1px rgba(255,255,255,0.8);
+    }
+
+    @keyframes pulse {
+      0% {
+        color:rgba(0,0,0,0.6);
+        text-shadow:0 0 20px rgba(0,0,0,0);
+      }
+      20% {
+        color:rgba(255,255,255,1);
+        text-shadow:0 0 80px rgba(0,0,0,0.2);
+      }
+      80% {
+        color:rgba(255,255,255,0.5);
+        text-shadow:0 0 50px rgba(0,0,0,0.1);
+      }
+      100% {
+        color:rgba(0,0,0,0.6);
+        text-shadow:0 0 0 rgba(0,0,0,0);
+      }
+    }
+
+    .loader {
+
+      .spinner {
+        width: 150px;
+        height: 150px;
+        position: relative;
+        margin: -106px auto 0;
+
+        &:before {
+          content: "";
+          display: block;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          border: 1px solid rgba(0,0,0,0.1);
+          opacity: 0.6;
+          position: absolute;
+          top: 0;
+          left: 0;
+          animation: loading-animation 2.0s linear infinite;
+          box-shadow:0 0 50px rgba(0,0,0,0.4);
+        }
+
+        @keyframes loading-animation {
+          0% { transform: scale(0.8); opacity: 0; }
+          60% { transform: scale(1.5); opacity: .24 }
+          80% { transform: scale(1.8); opacity: .15 }
+          100% { transform: scale(2.2); opacity: 0; }
+        }
+      }
+
+    }
+
+  }
+
+  &.error {
+    background:rgba(0,0,0,0.5);
+    padding:30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .box {
+      background:$white;
+      border-radius:4px;
+      width:100%;
+
+
+      .message {
+        padding:20px;
+        font-family:'Raleway',sans-serif;
+        text-align:center;
+
+        .title {
+          font-size:18px;
+          font-weight:500;
+          color:$dark-gray;
+        }
+
+        .description {
+          font-size:13px;
+          margin-top:10px;
+          border-top:1px solid rgba(0,0,0,0.05);
+          padding-top:10px;
+        }
+      }
+
+      .ok {
+        cursor: pointer;
+        height:50px;
+        line-height:50px;
+        width:100%;
+        border-top:1px solid rgba(0,0,0,0.03);
+        text-align:center;
+        font-size:18px;
+        font-family:'Raleway', sans-serif;
+        font-weight:bold;
+        color:$gray;
+        transition:background 0.2s ease;
+
+        &:hover {
+          background:rgba(0,0,0,0.02);
+        }
+      }
+
+    }
+  }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

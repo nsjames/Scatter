@@ -18,7 +18,7 @@
                 <figure class="quantity">{{transaction.messages[0].data.quantity}}</figure>
 
                 <section>
-                    <figure class="prop-bubble">{{(transaction.messages[0].data.from === '[scatter]') ? selectedKeyPair.publicKey.substr(0, 6) + '...' + selectedKeyPair.publicKey.substr(-4) : transaction.messages[0].data.from }}</figure>
+                    <figure class="prop-bubble">{{(transaction.messages[0].data.from === '[scatter]') ? selectedKeyPair.getHighestAuthorityName() : transaction.messages[0].data.from }}</figure>
                     <figure class="prop-divider">to</figure>
                     <figure class="prop-bubble blue-only force-right">{{transaction.messages[0].data.to}}</figure>
                 </section>
@@ -42,10 +42,9 @@
                         <figure class="name">{{selectedWallet.name}}</figure>
                         <figure class="symbol">EOS</figure>
                         <figure class="quantity">{{selectedWallet.balance}}</figure>
-                        <figure class="key" v-if="!selectedKeyPair.accounts.length">{{selectedKeyPair.publicKey.substr(0,6)}}.....{{selectedKeyPair.publicKey.substr(-4)}}</figure>
-                        <figure class="key" v-else>
-                            <span v-for="acc in selectedKeyPair.accounts" :class="{'owner':acc.authority==='owner'}">
-                                {{`${acc.name}@${acc.authority}`}}
+                        <figure class="key">
+                            <span :class="{'owner':selectedKeyPair.getHighestAuthority()==='owner'}">
+                                {{`${selectedKeyPair.getHighestAuthorityName()}@${selectedKeyPair.getHighestAuthority()}`}}
                             </span>
                         </figure>
                     </section>
@@ -58,10 +57,11 @@
                             <section class="key-pair" v-on:click="selectKeyPair(keyPair, wallet)" v-for="keyPair in wallet.keyPairs">
                                 <figure class="symbol">EOS</figure>
                                 <figure class="quantity">{{wallet.balance}}</figure>
-                                <figure class="key" v-if="!keyPair.accounts.length">{{keyPair.publicKey.substr(0,6)}}.....{{keyPair.publicKey.substr(-4)}}</figure>
+                                <figure class="key" v-if="!keyPair.accounts.length">{{keyPair.truncateKey()}}</figure>
                                 <figure class="key" v-else>
                                     <span v-for="acc in keyPair.accounts" :class="{'owner':acc.authority==='owner'}">
                                         {{`${acc.name}@${acc.authority}`}}
+                                        <!--{{acc.print()}}-->
                                     </span>
                                 </figure>
                             </section>

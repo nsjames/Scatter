@@ -21,12 +21,4 @@ export class StorageService {
 
     }
 
-    static registerChangeListener(){
-        chrome.storage.local.onChanged.addListener(function(changes, namespace) {
-            console.log("Storage Modified", changes, namespace)
-            // Let's add a listener which alerts the user when
-            // something has changed without permission
-        });
-    }
-
 }

@@ -13,7 +13,7 @@ let app = new WeakMap();
 const background = chrome.extension.getBackgroundPage();
 
 LocalStream.send(NetworkMessage.signal(InternalMessageTypes.LOAD)).then(scatter => {
-    //TODO: For the love of god, take me out of Vue's window scope [ I am insecure ] [ and not like.. teenage angst insecure, like Deebo has the keys to your house insecure ]
+    // TODO: Duplication from popup.js
     Vue.prototype.scatterData = ScatterData.fromJson(scatter);
     LocalStream.send(NetworkMessage.signal(InternalMessageTypes.IS_LOCKED)).then(isLocked => {
         Vue.prototype.scatterData.data.keychain.locked = isLocked;
@@ -47,5 +47,3 @@ function registerReusableComponents(){
     Vue.component('scatter-select', SelectComponent);
     Vue.component('recursive-list', RecursiveList);
 }
-
-// setupApp();

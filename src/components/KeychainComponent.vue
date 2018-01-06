@@ -7,7 +7,7 @@
         <section v-if="!openedWallet.editing">
             <section class="dashboard">
                 <section class="dup">
-                    <figure class="lock" v-on:click="lock"><i class="fa fa-unlock-alt"></i></figure>
+                    <figure class="lock" v-on:click="lockKeychain"><i class="fa fa-unlock-alt"></i></figure>
                     <figure class="edit" v-on:click="edit"><i class="fa fa-pencil"></i></figure>
                     <figure class="wallet-name" v-on:click="toggleSelectingWallet">{{openedWallet.name}}</figure>
                     <figure class="wallet-keys">{{openedWallet.keyPairs.length}} keys</figure>
@@ -87,8 +87,8 @@
                 </section>
 
                 <section class="ddown editing">
-                    <scatter-button text="Cancel" is-red="true" is-half="true" v-on:clicked="cancelEditing"></scatter-button>
-                    <scatter-button text="Save" is-half="true" v-on:clicked="saveWallet"></scatter-button>
+                    <scatter-button text="Cancel" is-red="true" v-bind:is-half="this.wallets.length" v-if="this.wallets.length" v-on:clicked="cancelEditing"></scatter-button>
+                    <scatter-button text="Save" v-bind:is-half="this.wallets.length" v-on:clicked="saveWallet"></scatter-button>
                 </section>
             </section>
 
@@ -118,16 +118,16 @@
 
 
                             <figure class="action-button" v-on:click="openedWallet.setDefaultKeyPair(keyPair)" :class="{'active':openedWallet.defaultPublicKey === keyPair.publicKey}">Default</figure>
-                            <figure class="action-button" v-on:click="keyPair.remove()">Delete</figure>
+                            <figure class="action-button" v-on:click="removeKeyPair(keyPair)">Delete</figure>
                         </section>
                         <figure class="public-key">
                             <i class="fa fa-key"></i>
-                            {{truncateKey(keyPair.publicKey)}}
+                            {{keyPair.truncateKey()}}
                         </figure>
                     </section>
                     <section v-if="keyPair.removed">
                         <section class="keypair-accounts">
-                            <figure class="deleted">{{truncateKey(keyPair.publicKey)}}</figure>
+                            <figure class="deleted">{{keyPair.truncateKey()}}</figure>
                             <figure class="action-button" v-on:click="keyPair.revertRemoval()">Revert Deletion</figure>
                         </section>
                     </section>
@@ -140,7 +140,7 @@
                     <figure class="line"></figure>
                     <section class="input-container">
                         <figure class="icon"><i class="fa fa-key"></i></figure>
-                        <input class="with-icon" placeholder="Private Key" type="password" v-model="newKeyPair.privateKey" />
+                        <input class="with-icon" placeholder="Private Key" type="password" v-model="importingKey.privateKey" />
                     </section>
 
                     <scatter-button text="Import" v-on:clicked="importPrivateKey"></scatter-button>
@@ -170,29 +170,25 @@
                 openedWallet:Vue.prototype.scatterData.data.keychain.getOpenWallet(),
 
                 generatingNewKey:false,
-                newKeyPair:KeyPair.placeholder(),
+                importingKey:KeyPair.placeholder(),
                 preEditedWallet:Wallet.placeholder()
             };
         },
         methods: {
-            setData:function(obj){ console.log("Setting data: ", obj); },
-
-            lock:function(){
+            lockKeychain:function(){
                 LocalStream.send(NetworkMessage.signal(InternalMessageTypes.LOCK)).then(locked => {
                     Vue.prototype.scatterData = ScatterData.fromJson(locked);
                     this.$router.push({name:'auth'});
                 })
             },
-
             selectListState:function(state){ this.listState = state; },
             selectingWallet:function(){ return this.listState === this.listStates.CHOOSE_WALLET; },
             toggleSelectingWallet:function(){ this.selectListState(this.selectingWallet() ? this.listStates.HISTORY : this.listStates.CHOOSE_WALLET); },
             createNewWallet:function(){ this.openedWallet = Wallet.newWallet(); },
             selectWallet:function(name){
                 LocalStream.send(NetworkMessage.payload(InternalMessageTypes.OPEN, name)).then(response => {
-                    //TODO: Error handling
                     if(!response) {
-                        alert(`There was an issue opening this wallet: ${name}`);
+                        window.ui.pushError('Wallet Error', `There was an issue opening the wallet named ${name}`);
                         return false;
                     }
 
@@ -208,9 +204,8 @@
             edit:function(){
                 this.preEditedWallet = this.openedWallet.clone();
                 LocalStream.send(NetworkMessage.signal(InternalMessageTypes.KEYCHAIN)).then(response => {
-                    //TODO: Error handling
                     if(!response) {
-                        alert("There was an issue decrypting the wallet")
+                        window.ui.pushError('Decryption Error', `There was an issue decrypting the wallet named ${name}`);
                         return false;
                     }
 
@@ -221,74 +216,78 @@
 
             },
 
-            importPrivateKey:function(){
-                let keyPair = this.newKeyPair.clone();
-
-                //TODO: Error handling
-                if(!EOSKeygen.validPrivateKey(keyPair.privateKey)) {
-                    alert("invalid private key")
+            removeKeyPair:function(keyPair){
+                if(!keyPair.reclaimed){
+                    window.ui.pushError('Error Removing Account', `You cannot remove accounts that have yet to be reclaimed.`);
                     return false;
                 }
+
+                keyPair.remove()
+            },
+
+            importPrivateKey:function(){
+                let keyPair = this.importingKey.clone();
+
+                if(!EOSKeygen.validPrivateKey(keyPair.privateKey)) {
+                    window.ui.pushError('Invalid Private Key', `It looks like the key you are trying to import is invalid.`);
+                    return false;
+                }
+
                 keyPair.publicKey = EOSKeygen.privateToPublic(keyPair.privateKey);
                 if(this.openedWallet.hasKey(keyPair.publicKey)) {
-                    alert("key already exists in wallet")
+                    window.ui.pushError('Key Already Exists', `The key you are trying to import already exists in this wallet.`);
                     return false;
                 }
 
                 keyPair.network = Vue.prototype.scatterData.data.settings.currentNetwork.clone();
-                console.log(keyPair, Vue.prototype.scatterData.data.settings)
                 AccountService.findAccount(keyPair).then(keyPairAccounts => {
                     if(!keyPairAccounts.length) {
-                        // TODO Error handling
-                        alert('Imported keys must already be associated with an account');
-                        this.newKeyPair = KeyPair.placeholder();
+                        window.ui.pushError('Non Associated Key', `Imported keys must already be associated with an account.`);
+                        this.importingKey = KeyPair.placeholder();
                         return false;
                     }
 
                     keyPair.setAccounts(keyPairAccounts);
                     keyPair.reclaimed = true;
                     this.openedWallet.keyPairs.push(keyPair);
-                    this.newKeyPair = KeyPair.placeholder();
+                    this.importingKey = KeyPair.placeholder();
                 })
             },
 
             generateNewKey:function(){
-                //TODO Error handling
-
                 if(this.wallets.concat(this.openedWallet).find(x => x.hasUnreclaimedKey())){
-                    alert('You must pay back your account fees before creating another key.')
+                    window.ui.pushError('Unreclaimed Account', `You must pay back the account stake we've already supplied you before creating another account.`);
                     return false;
                 }
-                this.newKeyPair = EOSKeygen.generateKeys();
-                this.newKeyPair.network = Vue.prototype.scatterData.data.settings.currentNetwork.clone();
-                if(!this.openedWallet.keyPairs.length) this.openedWallet.defaultPublicKey = this.newKeyPair.publicKey;
-                this.openedWallet.keyPairs.push(this.newKeyPair);
-                this.newKeyPair = KeyPair.placeholder();
+
+                let newKeyPair = EOSKeygen.generateKeys();
+                newKeyPair.network = Vue.prototype.scatterData.data.settings.currentNetwork.clone();
+                if(!this.openedWallet.keyPairs.length) this.openedWallet.defaultPublicKey = newKeyPair.publicKey;
+                this.openedWallet.keyPairs.push(newKeyPair);
             },
 
             saveWallet:function(){
                 //TODO: Error handling
                 if(!this.openedWallet.name.length){
-                    alert("Wallet must have a name");
+                    window.ui.pushError('Error Saving Wallet', `Wallet must have a name.`);
                     return false;
                 }
 
                 if(!this.openedWallet.keyPairs.filter(x => !x.removed).length){
-                    alert("Wallet must have at least one key");
+                    window.ui.pushError('Error Saving Wallet', `Wallet must have at least one account.`);
                     return false;
                 }
 
                 if(this.wallets.filter(x => x.uniqueKey !== this.openedWallet.uniqueKey && x.name === this.openedWallet.name).length){
-                    alert("Wallet must have unique names");
+                    window.ui.pushError('Error Saving Wallet', `Wallet must have unique names.`);
                     return false;
                 }
 
                 let newKeyPair = this.wallets.concat(this.openedWallet).map(x => x.keyPairs).reduce((a,b) => a.concat(b), []).find(key => !key.accounts.length);
-                console.log('new key pair?', newKeyPair)
                 let accountCreated = null;
                 if(newKeyPair){
                     if(!newKeyPair.hasOwnProperty('tempName') || !newKeyPair.tempName || !newKeyPair.tempName.length){
-                        alert('New accounts must be named');
+                        window.ui.pushError('Error Saving Wallet', `New accounts must be named.`);
                         return false;
                     }
                     accountCreated = AccountService.createAccount(newKeyPair, newKeyPair.tempName);
@@ -311,18 +310,12 @@
                     })
                     .catch(err => {
                         //TODO: Error handling
-                        if(err === 'exists') alert('This account name already exists');
+                        if(err === 'exists') window.ui.pushError('Error Saving Wallet', `This account name already exists.`);
                         else console.log(err);
                         return false;
                     });
             },
             cancelEditing:function(){
-                //TODO: Error checking
-                if(!this.wallets.length) {
-                    alert("You need at least one wallet");
-                    return false;
-                }
-
                 if(this.openedWallet.uniqueKey !== this.wallets.find(x => x.lastOpened).uniqueKey) this.openedWallet = this.wallets.find(x => x.lastOpened);
                 else this.openedWallet = this.preEditedWallet;
             }
