@@ -10,7 +10,7 @@
                     <figure class="lock" v-on:click="lockKeychain"><i class="fa fa-unlock-alt"></i></figure>
                     <figure class="edit" v-on:click="edit"><i class="fa fa-pencil"></i></figure>
                     <figure class="wallet-name" v-on:click="toggleSelectingWallet">{{openedWallet.name}}</figure>
-                    <figure class="wallet-keys">{{openedWallet.keyPairs.length}} keys</figure>
+                    <figure class="wallet-keys">{{openedWallet.keyPairsInNetwork(currentNetwork).length}} of {{openedWallet.keyPairs.length}} keys on {{currentNetwork.name}}</figure>
                     <section class="send-recv">
                         <figure>Send</figure>
                         <figure>Recv</figure>
@@ -29,9 +29,7 @@
                 </section>
             </section>
 
-
             <section class="data-list" v-if="!selectingWallet()">
-
                 <section v-if="listItems.length">
                     <section class="item event" v-for="listItem in listItems">
                         <figure class="fifty">
@@ -55,8 +53,6 @@
                         <figure class="sub-title">Once you start browsing websites integrated with Scatter you will be able to moderate their access to your wallets.</figure>
                     </section>
                 </section>
-
-
             </section>
 
             <section class="data-list" v-if="selectingWallet()">
@@ -69,10 +65,6 @@
                     <figure class="name">{{wallet.name}} </figure>
                 </section>
             </section>
-
-
-
-
         </section>
 
 
@@ -115,14 +107,17 @@
                                 <input class="account-name-input" v-model="keyPair.tempName" placeholder="Name this account" />
                             </section>
 
-
-
                             <figure class="action-button" v-on:click="openedWallet.setDefaultKeyPair(keyPair)" :class="{'active':openedWallet.defaultPublicKey === keyPair.publicKey}">Default</figure>
                             <figure class="action-button" v-on:click="removeKeyPair(keyPair)">Delete</figure>
                         </section>
                         <figure class="public-key">
                             <i class="fa fa-key"></i>
                             {{keyPair.truncateKey()}}
+                        </figure>
+                        <figure class="network">
+                            <i class="fa fa-globe"></i>
+                            <b>{{`${keyPair.network.name} `}}</b>
+                            ({{keyPair.network.unique()}})
                         </figure>
                     </section>
                     <section v-if="keyPair.removed">
@@ -168,6 +163,8 @@
 
                 wallets:Vue.prototype.scatterData.data.keychain.wallets,
                 openedWallet:Vue.prototype.scatterData.data.keychain.getOpenWallet(),
+
+                currentNetwork:Vue.prototype.scatterData.data.settings.currentNetwork,
 
                 generatingNewKey:false,
                 importingKey:KeyPair.placeholder(),
@@ -234,7 +231,7 @@
                 }
 
                 keyPair.publicKey = EOSKeygen.privateToPublic(keyPair.privateKey);
-                if(this.openedWallet.hasKey(keyPair.publicKey)) {
+                if(this.openedWallet.hasKey(keyPair.publicKey, this.currentNetwork)) {
                     window.ui.pushError('Key Already Exists', `The key you are trying to import already exists in this wallet.`);
                     return false;
                 }

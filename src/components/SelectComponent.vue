@@ -12,7 +12,7 @@
     export default {
         data() { return {
             open:false,
-            selectedOption:this.options[0]
+            selectedOption:(this.forceSelectedOption) ? this.forceSelectedOption : this.options[0]
         };
         },
         methods: {
@@ -25,7 +25,10 @@
             },
             changed:function(){ this.$emit('changed', this.selectedOption) }
         },
-        props: ['options'],
-        watch: { selectedOption: function(n,o) { this.changed(); } }
+        props: ['options', 'forceSelectedOption'],
+        watch: {
+            selectedOption: function(n,o) { this.changed(); },
+            forceSelectedOption: function(n,o) { this.selectedOption = this.forceSelectedOption; },
+        }
     };
 </script>

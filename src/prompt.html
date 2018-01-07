@@ -11,6 +11,8 @@
 <body>
     <section id="prompt">
         <request-unlock-prompt v-if="prompt && prompt.type === 'req_unlock'" v-bind:responder="prompt.payload.responder"></request-unlock-prompt>
+        <select-account-prompt v-if="prompt && prompt.type === 'prompt_ident'" v-bind:responder="prompt.payload.responder"
+                               v-bind:network="prompt.payload.network" v-bind:location="prompt.payload.location"></select-account-prompt>
         <request-auth-prompt v-if="prompt && prompt.type === 'prompt_auth'" v-bind:responder="prompt.payload.responder"
                              v-bind:network="prompt.payload.network" v-bind:transaction="prompt.payload.transaction" v-bind:permission="prompt.payload.permission"
                              v-bind:allowed-accounts="prompt.payload.allowedAccounts"></request-auth-prompt>

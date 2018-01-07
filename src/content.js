@@ -29,7 +29,7 @@ class ContentScript {
 
         switch(msg.type){
             case 'sync': this.sync(msg); break;
-            case NetworkMessageTypes.REQUEST_PERMISSIONS: this.requestPermissions(nonSyncMessage); break;
+            case NetworkMessageTypes.REQUEST_IDENTITY: this.requestIdentity(nonSyncMessage); break;
             case NetworkMessageTypes.PROVE_IDENTITY: this.proveIdentity(nonSyncMessage); break;
             case NetworkMessageTypes.REQUEST_SIGNATURE: this.sign(nonSyncMessage); break;
             case NetworkMessageTypes.SIGN_WITH_ANY: this.signWithAnyAccount(nonSyncMessage); break;
@@ -63,6 +63,15 @@ class ContentScript {
         })
     }
 
+    identityGuard(message){
+        return new Promise((resolve, reject) => {
+            LocalStream.send(NetworkMessage.payload(InternalMessageTypes.PROMPT_IDENTITY, message)).then(publicKey => {
+                if(typeof publicKey !== 'undefined' && publicKey) { resolve(publicKey); return; }
+                this.rejectWithError(message.error(new ScatterError("not_authorized", "The user did not authorize the provision of identity.")), reject);
+            })
+        })
+    }
+
     lockAndSignGuard(message, account = null){
         return new Promise((resolve, reject) => {
             this.lockGuard(message).then(locked => {
@@ -76,15 +85,25 @@ class ContentScript {
 
 
 
-    requestPermissions(message){
+    requestIdentity(message){
         this.lockGuard(message).then(locked => {
-            this.respond(message, 'NOT YET IMPLEMENTED');
+            setTimeout(() => {
+                this.identityGuard(message).then(identity => {
+                    // TODO: Change to support user selected account
+                    this.respond(message, {name:identity.accounts[0].name, publicKey:identity.publicKey});
+                }).catch(() => {})
+            }, 100)
         }).catch(() => {});
     }
 
     proveIdentity(message){
         this.lockGuard(message).then(locked => {
-            this.respond(message, 'NOT YET IMPLEMENTED');
+            const publicKey = message.payload.publicKey;
+            const random = message.payload.random;
+            LocalStream.send(NetworkMessage.payload(InternalMessageTypes.PROVE_IDENTITY, {publicKey, random})).then(encrypted => {
+                console.log(encrypted);
+                this.respond(message, 'NOT YET IMPLEMENTED');
+            }).catch(e => { this.rejectWithError(message.error(new ScatterError('bad_key', "Couldn't fetch key"))) })
         }).catch(() => {});
     }
 
@@ -108,8 +127,6 @@ class ContentScript {
         })
 
     }
-
-
 
     signWithAnyAccount(message){
         let trx = Object.assign({}, message.payload);

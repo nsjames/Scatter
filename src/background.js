@@ -24,6 +24,8 @@ export class Background {
                 case InternalMessageTypes.UPDATE: Background.update(sendResponse, request.payload); break;
 
                 case InternalMessageTypes.PROMPT_AUTH: Background.promptAuthorization(sendResponse, request.payload); break;
+                case InternalMessageTypes.PROMPT_IDENTITY: Background.promptIdentity(sendResponse, request.payload); break;
+                case InternalMessageTypes.PROVE_IDENTITY: Background.proveIdentity(sendResponse, request.payload); break;
                 case InternalMessageTypes.RECLAIM: Background.reclaim(sendResponse); break;
                 case 'reset': chrome.storage.local.clear(); sendResponse({}); break;
                 // default: sendResponse(null);
@@ -118,6 +120,19 @@ export class Background {
         }, 600);
     }
 
+    static promptIdentity(sendResponse, message){
+        Background.openPrompt(InternalMessageTypes.PROMPT_IDENTITY, {
+            responder:sendResponse,
+            network:message.network,
+            location:message.payload.location
+        }, 600);
+    }
+
+    static proveIdentity(sendResponse, message){
+
+        sendResponse(null);
+    }
+
     /***
      * Happens every time a user sends coins.
      * If there is an unreclaimed account lingering it will be paid for.
@@ -142,10 +157,7 @@ export class Background {
                             }
                             else sendResponse(false);
                         })
-                        .catch(x => {
-                            console.log("Err: ", x)
-                            sendResponse(false)
-                        })
+                        .catch(x => sendResponse(false))
                 }, keyPair.publicKey)
             } else sendResponse(false);
         })
@@ -166,6 +178,7 @@ export class Background {
     static openPrompt(type, payload = {}, height = 500){
         let rightmost = window.screen.availWidth-5;
         let popup = window.open(chrome.runtime.getURL('prompt.html'), 'ScatterPrompt', `width=360,resizable=0,height=${height},dependent=true,top=50,left=${rightmost}`);
+        console.log(type, payload);
         popup.scatterPrompt = { type, payload };
 
     }

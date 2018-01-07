@@ -6,6 +6,8 @@ export const InternalMessageTypes = {
     IS_LOCKED:'locked?',
     REQUEST_UNLOCK:'req_unlock',
     PROMPT_AUTH:'prompt_auth',
+    PROMPT_IDENTITY:'prompt_ident',
+    PROVE_IDENTITY:'prove_ident',
     UNLOCK:'unlock',
     KEYCHAIN:'keychain',
     UPDATE:'update',

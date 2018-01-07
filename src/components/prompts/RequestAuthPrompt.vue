@@ -12,31 +12,33 @@
 
             <!-- INFO SECTION -->
             <!-- Custom template for standard transfers -->
-            <section class="info standard" v-if="isStandardCurrencyTransfer()">
-                <figure class="symbol">EOS</figure>
-                <figure class="title">Currency Transfer</figure>
-                <figure class="quantity">{{transaction.messages[0].data.quantity}}</figure>
+            <section v-if="wallets.length">
+                <section class="info standard" v-if="isStandardCurrencyTransfer()">
+                    <figure class="symbol">EOS</figure>
+                    <figure class="title">Currency Transfer</figure>
+                    <figure class="quantity">{{transaction.messages[0].data.quantity}}</figure>
 
-                <section>
-                    <figure class="prop-bubble">{{(transaction.messages[0].data.from === '[scatter]') ? selectedKeyPair.getHighestAuthorityName() : transaction.messages[0].data.from }}</figure>
-                    <figure class="prop-divider">to</figure>
-                    <figure class="prop-bubble blue-only force-right">{{transaction.messages[0].data.to}}</figure>
+                    <section>
+                        <figure class="prop-bubble">{{(transaction.messages[0].data.from === '[scatter]') ? selectedKeyPair.getHighestAuthorityName() : transaction.messages[0].data.from }}</figure>
+                        <figure class="prop-divider">to</figure>
+                        <figure class="prop-bubble blue-only force-right">{{transaction.messages[0].data.to}}</figure>
+                    </section>
                 </section>
-            </section>
 
-            <!-- Generic template for custom contracts -->
-            <section class="info" v-else>
-                <figure class="domain">{{permission.domain}}</figure>
-                <figure class="title">{{permission.name}}</figure>
-                <figure class="description">{{permission.description}}</figure>
-                <figure class="warning">Never trust the name and description alone, validate the contract below and the network above. Always know what you are signing.</figure>
+                <!-- Generic template for custom contracts -->
+                <section class="info" v-else>
+                    <figure class="domain">{{permission.domain}}</figure>
+                    <figure class="title">{{permission.name}}</figure>
+                    <figure class="description">{{permission.description}}</figure>
+                    <figure class="warning">Never trust the name and description alone, validate the contract below and the network above. Always know what you are signing.</figure>
+                </section>
             </section>
 
 
 
             <section class="black-over" :class="{'dark':selectingKeyPair}"></section>
             <section class="wallet-placeholder" :class="{'show':selectingKeyPair}"></section>
-            <section class="wallet-select" :class="{'selecting':selectingKeyPair}">
+            <section class="wallet-select" v-if="wallets.length" :class="{'selecting':selectingKeyPair}">
                 <section class="selected" v-on:click="toggleSelectingKeyPair">
                     <section class="wallet">
                         <figure class="name">{{selectedWallet.name}}</figure>
@@ -54,7 +56,7 @@
                     <section class="wallet" v-for="wallet in wallets">
                         <figure class="name">{{wallet.name}}</figure>
                         <section class="key-pairs">
-                            <section class="key-pair" v-on:click="selectKeyPair(keyPair, wallet)" v-for="keyPair in wallet.keyPairs">
+                            <section class="key-pair" v-on:click="selectKeyPair(keyPair, wallet)" v-for="keyPair in wallet.keyPairsInNetwork(network)">
                                 <figure class="symbol">EOS</figure>
                                 <figure class="quantity">{{wallet.balance}}</figure>
                                 <figure class="key" v-if="!keyPair.accounts.length">{{keyPair.truncateKey()}}</figure>
@@ -69,13 +71,17 @@
                     </section>
                 </section>
             </section>
-
-            <section class="actions">
-                <figure class="action blue" v-on:click="accept">Approve</figure>
-                <figure class="action red" v-on:click="deny">Deny</figure>
+            <section class="info no-account" v-else>
+                <figure class="title">The website is trying to get you to sign a transaction with an account/network that you do not have in your wallet.</figure>
+                <figure class="description">This could be happening because you deleted an account/network from your wallet yet the website still has a reference to you owning it.</figure>
             </section>
 
-            <section class="transaction">
+            <section class="actions">
+                <figure class="action blue" v-if="wallets.length" v-on:click="accept">Approve</figure>
+                <figure class="action red" :class="{'full':!wallets.length}" v-on:click="deny">Deny</figure>
+            </section>
+
+            <section class="transaction" v-if="wallets.length">
                 <section class="header">
                     <figure class="title">Transaction Structure</figure>
                     <section class="formats">
@@ -115,7 +121,7 @@
                 wallets:[],
                 selectedKeyPair:KeyPair.placeholder(),
                 selectedWallet:Wallet.placeholder(),
-                selectingKeyPair:false
+                selectingKeyPair:false,
             }
         },
         methods: {
@@ -156,7 +162,7 @@
                 }
 
                 function allowedWallet(wallet) {
-                    return wallet.keyPairs.filter(x => allowedKeyPair(x)).length
+                    return wallet.keyPairsInNetwork(this.network).filter(x => allowedKeyPair(x)).length
                 }
 
                 let allowed = Vue.prototype.scatterData.data.keychain.wallets.map(x => x.clone())
@@ -168,9 +174,12 @@
                 this.selectedWallet = allowed[0];
                 this.wallets = allowed;
             } else {
-                this.wallets = Vue.prototype.scatterData.data.keychain.wallets;
-                this.selectedKeyPair = Vue.prototype.scatterData.data.keychain.getOpenWallet().getDefaultKeyPair();
-                this.selectedWallet = Vue.prototype.scatterData.data.keychain.getOpenWallet();
+                const keychain = Vue.prototype.scatterData.data.keychain;
+                this.wallets = keychain.wallets.filter(x => x.keyPairsInNetwork(this.network).length);
+                const openWallet = (this.wallets.map(x => x.name).indexOf(keychain.getOpenWallet().name) > -1) ? keychain.getOpenWallet()
+                    : (this.wallets.length) ? this.wallets[0] : null;
+                this.selectedWallet = openWallet;
+                this.selectedKeyPair = openWallet.keyPairsInNetwork(this.network)[0] || null;
             }
         }
     };

@@ -20,6 +20,23 @@ span {
   }
 }
 
+h1, h2, h3, h4 {
+  font-family:'Raleway', sans-serif;
+  font-weight:400;
+}
+
+h2 {
+  font-size:20px;
+}
+
+h3 {
+  font-size:18px;
+}
+
+h4 {
+  font-size:16px;
+}
+
 .top {
   background:$white;
   height:140px;
@@ -731,7 +748,15 @@ button {
       }
 
       .public-key {
+        width:100%;
+        font-size:11px;
+        font-family:'Open Sans', sans-serif;
+      }
 
+      .network {
+        width:100%;
+        font-size:11px;
+        font-family:'Open Sans', sans-serif;
       }
 
       .fifty {
@@ -1099,6 +1124,17 @@ button {
       font-weight:600;
       margin-top:20px;
     }
+
+    &.no-account {
+      margin-top:0;
+      margin-bottom:30px;
+
+      .description {
+        margin-top:10px;
+        border-top:1px solid rgba(0,0,0,0.1);
+        padding-top:10px;
+      }
+    }
   }
 
   .black-over {
@@ -1177,12 +1213,12 @@ button {
       cursor: pointer;
 
 
-      &:not(.selecting):hover {
+      &:hover {
         box-shadow:0 6px 22px rgba(0,0,0,0.05), 0 15px 30px rgba(0,0,0,0.03);
         transform:translateY(-2px);
       }
 
-      &:not(.selecting):active {
+      &:active {
         box-shadow:0 1px 2px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.07);
         transform:translateY(1px);
         background:rgba(0,0,0,0.001);
@@ -1270,6 +1306,15 @@ button {
       .wallets {
         display:block;
       }
+
+      .selected {
+
+        &:active {
+          box-shadow:0 1px 2px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.07);
+          transform:translateY(1px);
+          background:rgba(240, 240, 240, 1);
+        }
+      }
     }
 
   }
@@ -1303,6 +1348,10 @@ button {
       text-align:center;
       transition:all 0.2s ease;
       transition-property: background, color;
+
+      &.full {
+        width:100%;
+      }
 
       &.blue {
         border:1px solid $blue;
