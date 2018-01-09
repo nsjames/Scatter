@@ -42,7 +42,7 @@ and Scattermodels are just shared resources between the two_ )
 2) Do `git clone https://github.com/nsjames/Scatterdapp.git` inside the directory
 3) While still inside of the `/scatterdapp/` directory do `npm link`
 4) **Repeat 1-3 for `https://github.com/nsjames/Scattermodels.git`**
-5) Then go to wherever you cloned **Scatter** into and do `npm link scatterdapp scattermodels`
+5) Then go to wherever you cloned **Scatter** into and do `npm link scatterdapp scatterhelpers`
 
 
 ## Building:

@@ -25,7 +25,7 @@
 </template>
 <script>
     import Vue from 'vue';
-    import {LocalStream, ScatterData, NetworkMessage} from 'scattermodels'
+    import {LocalStream, ScatterData, NetworkMessage} from 'scatterhelpers'
     import {Mnemonic} from '../cryptography/Mnemonic';
     import {PasswordHasher} from '../cryptography/PasswordHasher'
     import {EOSKeygen} from '../cryptography/EOSKeygen'
@@ -54,23 +54,27 @@
             updateSelectedKeychainOption:function(x){ this.selectedKeychainOption = x; },
 
             createNewKeychain:function(){
-                AuthenticationService.create(this.password, Vue.prototype.scatterData).then(res => {
-                    Vue.prototype.scatterData = res.scatter;
-                    //TODO: Display mnemonic instead before routing to 'keychain'
-                    console.log('mnemonic', res.mnemonic);
-                    this.keychainAvailable = true;
-                    this.$router.push({name:'keychain'});
-                }).catch(badPassword => {
-                    window.ui.pushError('Password Error', 'Passwords must be at least 8 characters long.');
-                    this.$refs.createButton.errored();
-                })
+                window.ui.waitFor(
+                    AuthenticationService.create(this.password, Vue.prototype.scatterData).then(res => {
+                        Vue.prototype.scatterData = res.scatter;
+                        //TODO: Display mnemonic instead before routing to 'keychain'
+                        console.log('mnemonic', res.mnemonic);
+                        this.keychainAvailable = true;
+                        this.$router.push({name:'keychain'});
+                    }).catch(badPassword => {
+                        window.ui.pushError('Password Error', 'Passwords must be at least 8 characters long.');
+                        this.$refs.createButton.errored();
+                    })
+                )
             },
 
             unlockKeychain:function(){
-                AuthenticationService.authenticate(this.password, Vue.prototype.scatterData.data.hash).then(scatter => {
-                    Vue.prototype.scatterData = scatter;
-                    this.$router.push('keychain');
-                }).catch(badPassword => this.$refs.unlockButton.errored())
+                window.ui.waitFor(
+                    AuthenticationService.authenticate(this.password, Vue.prototype.scatterData.data.hash).then(scatter => {
+                        Vue.prototype.scatterData = scatter;
+                        this.$router.push('keychain');
+                    }).catch(badPassword => this.$refs.unlockButton.errored())
+                )
             },
 
             importKeychainFromJson:function(){}

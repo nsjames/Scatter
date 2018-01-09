@@ -1,9 +1,10 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import {ScatterData, LocalStream, NetworkMessage} from 'scattermodels'
+import {ScatterData, LocalStream, NetworkMessage} from 'scatterhelpers'
 import AuthComponent from './components/AuthComponent.vue'
 import KeychainComponent from './components/KeychainComponent.vue'
 import SettingsComponent from './components/SettingsComponent.vue'
+import SendComponent from './components/SendComponent.vue'
 import ButtonComponent from './components/ButtonComponent.vue'
 import WorkingAlert from './components/alerts/WorkingAlert.vue'
 import ErrorAlert from './components/alerts/ErrorAlert.vue'
@@ -20,7 +21,8 @@ let router = null;
 const routes = [
     { path: '', name:'auth', component: AuthComponent},
     { path: '/keychain', name:'keychain', component: KeychainComponent},
-    { path: '/settings', name:'settings', component: SettingsComponent}
+    { path: '/settings', name:'settings', component: SettingsComponent},
+    { path: '/send', name:'send', component: SendComponent}
 ];
 
 LocalStream.send(NetworkMessage.signal(InternalMessageTypes.LOAD)).then(scatter => {
@@ -54,7 +56,6 @@ function setupRouting(){
         switch(to.name){
             case 'auth': beforeAuth(next); break;
             case 'keychain': beforeKeychain(next); break;
-            case 'settings': beforeSettings(next); break;
             default:next()
         }
     });
@@ -64,8 +65,27 @@ function setupGlobals(){
     window.ui = ui;
     Vue.prototype.toggleSettings = () => router.push({name:(router.currentRoute.name === 'settings' ? 'auth' :'settings')});
     Vue.prototype.hideSettingsButton = false;
+    Vue.filter('money', function (value) {
+        if(!value || value.toString() === '0') return '0.00';
+        let decimals = (value.toString().split('.')[1] || '').length;
+        let val = (value/1).toFixed(decimals).replace(',', '.');
+        let whole = val.toString().split('.')[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        let fractions = (val.toString().split('.').length === 2) ? val.toString().split('.')[1] : '00';
+        return `${whole}.${fractions}`
+    })
+    Vue.filter('expiration', function (date) {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        function dateSuffix(d){ return (d>=4) ? d+'th' : (d===1) ? d+'st' : (d===2) ? d+'nd' : d+'rd'; }
+        const d = new Date(date);
+        return `${months[d.getUTCMonth()]} ${dateSuffix(d.getUTCDate())} ${d.getUTCFullYear()}`;
+    })
+    Vue.filter('truncdec', function (num, places) {
+        const split = num.toString().split('.');
+        const whole = split[0];
+        const decimals = split[1] || '00';
+        return `${whole}.${decimals.substr(0, places)}`
+    })
 }
 
 function beforeAuth(next){ if(!Vue.prototype.scatterData.data.keychain.locked) next({name:'keychain'}); else next() }
 function beforeKeychain(next){ if(Vue.prototype.scatterData.data.keychain.locked) next({name:'auth'}); else next() }
-function beforeSettings(next){ next() }

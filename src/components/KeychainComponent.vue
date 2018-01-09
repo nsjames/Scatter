@@ -12,45 +12,51 @@
                     <figure class="wallet-name" v-on:click="toggleSelectingWallet">{{openedWallet.name}}</figure>
                     <figure class="wallet-keys">{{openedWallet.keyPairsInNetwork(currentNetwork).length}} of {{openedWallet.keyPairs.length}} keys on {{currentNetwork.name}}</figure>
                     <section class="send-recv">
-                        <figure>Send</figure>
-                        <figure>Recv</figure>
+                        <router-link :to="{name:'send'}">Send</router-link>
+                        <!--<figure>Recv</figure>-->
                     </section>
                 </section>
 
                 <section class="ddown">
                     <section class="fifty">
-                        <p class="blue"><b>EOS</b><span>{{openedWallet.balance}}</span></p>
-                        <p><b>USD</b><span>{{openedWallet.balance * openedWallet.lastKnownConversionRate}}</span></p>
+                        <p class="blue"><b>EOS</b><span>{{openedWallet.networkBalance(currentNetwork) | money}}</span></p>
+                        <p><b>USD</b><span>{{openedWallet.networkBalance(currentNetwork) * 10.88 | money | truncdec(2)}}</span></p>
                     </section>
                     <section class="fifty">
-                        <section class="list-switch" :class="{'active':listState==='history'}" v-on:click="selectListState('history')"><i class="fa fa-history"></i></section>
-                        <section class="list-switch" :class="{'active':listState==='domains'}" v-on:click="selectListState('domains')"><i class="fa fa-globe"></i></section>
+                        <section class="list-switch" :class="{'active':listState===listStates.HISTORY}" v-on:click="selectListState(listStates.HISTORY)"><i class="fa fa-history"></i></section>
+                        <section class="list-switch" :class="{'active':listState===listStates.CONTRACTS}" v-on:click="selectListState(listStates.CONTRACTS)"><i class="fa fa-globe"></i></section>
                     </section>
                 </section>
             </section>
 
             <section class="data-list" v-if="!selectingWallet()">
                 <section v-if="listItems.length">
-                    <section class="item event" v-for="listItem in listItems">
+                    <section class="item event" v-for="item in listItems">
                         <figure class="fifty">
-                            <figure class="title">May 22nd, 2017</figure>
-                            <figure class="sub-title">forseen.com</figure>
+                            <figure class="sub-title"><i>{{item.account}}</i></figure>
+                            <figure class="title">{{item.transaction.expiration | expiration}}</figure>
+                            <figure class="sub-title trx-id">{{item.transaction_id}}</figure>
                         </figure>
-                        <figure class="fifty">
+                        <figure class="fifty" v-if="isEosTransfer(item)">
+                            <figure class="amount" :class="{'spent':wasSpent(item)}">{{wasSpent(item) ? '-' : '+'}}{{ item | transactionSum }}</figure>
                             <figure class="coin">EOS</figure>
-                            <figure class="amount">0.004854</figure>
+                        </figure>
+
+                        <figure class="fifty" v-else>
+                            <!--<figure class="amount" :class="{'spent':wasSpent(item)}">{{wasSpent(item) ? '-' : '+'}}{{ item | transactionSum }}</figure>-->
+                            <figure class="coin" v-for="code in transactionNames(item)">{{code}}</figure>
                         </figure>
                     </section>
                 </section>
 
                 <section v-if="!listItems.length">
-                    <section class="no-items" v-if="listState==='history'">
-                        <figure class="title">No transactions could be found for this wallet..</figure>
-                        <figure class="sub-title">Send tokens to a key in this account.</figure>
+                    <section class="no-items" v-if="listState===listStates.HISTORY">
+                        <figure class="title">No EOS transfers could be found for this wallet..</figure>
+                        <figure class="sub-title">Send or Receive tokens to a key in this account.</figure>
                     </section>
-                    <section class="no-items" v-if="listState==='domains'">
-                        <figure class="title">You have not granted any domains access to any wallets.</figure>
-                        <figure class="sub-title">Once you start browsing websites integrated with Scatter you will be able to moderate their access to your wallets.</figure>
+                    <section class="no-items" v-if="listState===listStates.CONTRACTS">
+                        <figure class="title">No Contract transactions could be found for this wallet..</figure>
+                        <figure class="sub-title">Once you start browsing websites integrated with Scatter you will see contract transactions here.</figure>
                     </section>
                 </section>
             </section>
@@ -91,7 +97,7 @@
                         <section class="keypair-accounts">
 
                             <section class="authority" v-if="keyPair.getHighestAuthority() !== 'No account found'" :class="{'warn':keyPair.hasOwnerAuthority()}">
-                                {{keyPair.getHighestAuthority()}}
+                                {{keyPair.getHighestAuthorityName()}}
                                 <figure class="info" v-if="keyPair.accounts.length">
                                     <i class="fa fa-info"></i>
                                     <section class="box">
@@ -107,15 +113,15 @@
                                 <input class="account-name-input" v-model="keyPair.tempName" placeholder="Name this account" />
                             </section>
 
-                            <figure class="action-button" v-on:click="openedWallet.setDefaultKeyPair(keyPair)" :class="{'active':openedWallet.defaultPublicKey === keyPair.publicKey}">Default</figure>
+
                             <figure class="action-button" v-on:click="removeKeyPair(keyPair)">Delete</figure>
                         </section>
                         <figure class="public-key">
-                            <i class="fa fa-key"></i>
-                            {{keyPair.truncateKey()}}
+                            <i class="fa fa-money" style="width:15px;"></i>
+                            {{keyPair.balance | money}}
                         </figure>
                         <figure class="network">
-                            <i class="fa fa-globe"></i>
+                            <i class="fa fa-globe" style="width:15px;"></i>
                             <b>{{`${keyPair.network.name} `}}</b>
                             ({{keyPair.network.unique()}})
                         </figure>
@@ -149,16 +155,17 @@
 </template>
 <script>
     import Vue from 'vue';
-    import {Keychain, KeyPair, Wallet, ScatterData, LocalStream, NetworkMessage} from 'scattermodels'
+    import {Keychain, KeyPair, Wallet, ScatterData, LocalStream, NetworkMessage} from 'scatterhelpers'
     import {EOSKeygen} from '../cryptography/EOSKeygen'
     import {InternalMessageTypes} from '../messages/InternalMessageTypes';
     import {AccountService} from '../services/AccountService';
 
+    const listStates = {HISTORY:'history', CONTRACTS:'contracts', CHOOSE_WALLET:'choose_wallet'};
     export default {
         data() {
             return {
-                listStates:{HISTORY:'history', DOMAINS:'domains', CHOOSE_WALLET:'choose_wallet'},
-                listState:'history',
+                listStates,
+                listState:listStates.HISTORY,
                 listItems:[],
 
                 wallets:Vue.prototype.scatterData.data.keychain.wallets,
@@ -171,14 +178,43 @@
                 preEditedWallet:Wallet.placeholder()
             };
         },
+        mounted(){
+            this.fetchBalances();
+
+            // TODO: Not sure if we want to do this so often for production.
+            setInterval(() => {
+                this.fetchBalances();
+            }, 10000);
+
+
+            this.selectListState(this.listStates.HISTORY);
+        },
         methods: {
+            fetchBalances:function(){
+                this.openedWallet.keyPairs.map(kp => {
+                    AccountService.getKeyPairBalance(kp).then(bal => kp.balance = bal);
+                });
+//                this.openedWallet.keyPairs.map(kp => {
+//                    AccountService.getBalances(kp).then(bal => kp.balance = bal);
+//                });
+            },
             lockKeychain:function(){
                 LocalStream.send(NetworkMessage.signal(InternalMessageTypes.LOCK)).then(locked => {
                     Vue.prototype.scatterData = ScatterData.fromJson(locked);
                     this.$router.push({name:'auth'});
                 })
             },
-            selectListState:function(state){ this.listState = state; },
+            selectListState:function(state){
+                this.listState = state;
+                this.listItems = [];
+                if(this.listState === this.listStates.HISTORY) this.getTransactions();
+                else if (this.listState === this.listStates.CONTRACTS) this.getTransactions(false);
+            },
+            getTransactions:function(eosOnly = true){
+                AccountService.getWalletTransactions(this.openedWallet, eosOnly).then(res => {
+                    this.listItems = res;
+                })
+            },
             selectingWallet:function(){ return this.listState === this.listStates.CHOOSE_WALLET; },
             toggleSelectingWallet:function(){ this.selectListState(this.selectingWallet() ? this.listStates.HISTORY : this.listStates.CHOOSE_WALLET); },
             createNewWallet:function(){ this.openedWallet = Wallet.newWallet(); },
@@ -195,24 +231,22 @@
                     this.listState = this.listStates.HISTORY;
                 })
             },
-
-
-
             edit:function(){
                 this.preEditedWallet = this.openedWallet.clone();
-                LocalStream.send(NetworkMessage.signal(InternalMessageTypes.KEYCHAIN)).then(response => {
-                    if(!response) {
-                        window.ui.pushError('Decryption Error', `There was an issue decrypting the wallet named ${name}`);
-                        return false;
-                    }
+                window.ui.waitFor(
+                    LocalStream.send(NetworkMessage.signal(InternalMessageTypes.KEYCHAIN)).then(response => {
+                        if(!response) {
+                            window.ui.pushError('Decryption Error', `There was an issue decrypting the wallet named ${name}`);
+                            return false;
+                        }
 
-                    let wallet = response.data.keychain.wallets.find(x => x.uniqueKey === this.openedWallet.uniqueKey);
-                    this.openedWallet.keyPairs = wallet.keyPairs.map(x => KeyPair.fromJson(x));
-                    this.openedWallet.edit();
-                })
-
+                        let wallet = response.data.keychain.wallets.find(x => x.uniqueKey === this.openedWallet.uniqueKey);
+                        this.openedWallet.keyPairs = wallet.keyPairs.map(x => KeyPair.fromJson(x));
+                        this.openedWallet.edit();
+                        this.fetchBalances();
+                    })
+                )
             },
-
             removeKeyPair:function(keyPair){
                 if(!keyPair.reclaimed){
                     window.ui.pushError('Error Removing Account', `You cannot remove accounts that have yet to be reclaimed.`);
@@ -221,7 +255,6 @@
 
                 keyPair.remove()
             },
-
             importPrivateKey:function(){
                 let keyPair = this.importingKey.clone();
 
@@ -237,20 +270,21 @@
                 }
 
                 keyPair.network = Vue.prototype.scatterData.data.settings.currentNetwork.clone();
-                AccountService.findAccount(keyPair).then(keyPairAccounts => {
-                    if(!keyPairAccounts.length) {
-                        window.ui.pushError('Non Associated Key', `Imported keys must already be associated with an account.`);
+                window.ui.waitFor(
+                    AccountService.findAccount(keyPair).then(keyPairAccounts => {
+                        if(!keyPairAccounts.length) {
+                            window.ui.pushError('Non Associated Key', `Imported keys must already be associated with an account.`);
+                            this.importingKey = KeyPair.placeholder();
+                            return false;
+                        }
+
+                        keyPair.setAccounts(keyPairAccounts);
+                        keyPair.reclaimed = true;
+                        this.openedWallet.keyPairs.push(keyPair);
                         this.importingKey = KeyPair.placeholder();
-                        return false;
-                    }
-
-                    keyPair.setAccounts(keyPairAccounts);
-                    keyPair.reclaimed = true;
-                    this.openedWallet.keyPairs.push(keyPair);
-                    this.importingKey = KeyPair.placeholder();
-                })
+                    })
+                )
             },
-
             generateNewKey:function(){
                 if(this.wallets.concat(this.openedWallet).find(x => x.hasUnreclaimedKey())){
                     window.ui.pushError('Unreclaimed Account', `You must pay back the account stake we've already supplied you before creating another account.`);
@@ -259,12 +293,9 @@
 
                 let newKeyPair = EOSKeygen.generateKeys();
                 newKeyPair.network = Vue.prototype.scatterData.data.settings.currentNetwork.clone();
-                if(!this.openedWallet.keyPairs.length) this.openedWallet.defaultPublicKey = newKeyPair.publicKey;
                 this.openedWallet.keyPairs.push(newKeyPair);
             },
-
             saveWallet:function(){
-                //TODO: Error handling
                 if(!this.openedWallet.name.length){
                     window.ui.pushError('Error Saving Wallet', `Wallet must have a name.`);
                     return false;
@@ -291,31 +322,55 @@
                 } else accountCreated = new Promise((res,rej) => res(''));
 
 
-                accountCreated
-                    .then(trx_id => {
-                        let scatter = Vue.prototype.scatterData.clone();
+                window.ui.waitFor(
+                    accountCreated
+                        .then(trx_id => {
+                            let scatter = Vue.prototype.scatterData.clone();
 
-                        if(this.wallets.length) scatter.data.keychain.wallets = this.wallets.filter(x => x.uniqueKey !== this.preEditedWallet.uniqueKey);
-                        scatter.data.keychain.wallets.push(this.openedWallet);
+                            if(this.wallets.length) scatter.data.keychain.wallets = this.wallets.filter(x => x.uniqueKey !== this.preEditedWallet.uniqueKey);
+                            scatter.data.keychain.wallets.push(this.openedWallet);
 
-                        ScatterData.update(scatter).then(saved => {
-                            Vue.prototype.scatterData = ScatterData.fromJson(saved);
-                            this.wallets = Vue.prototype.scatterData.data.keychain.wallets;
-                            this.openedWallet = this.wallets.find(x => x.lastOpened);
-                            this.openedWallet.stopEditing();
+                            ScatterData.update(scatter).then(saved => {
+                                Vue.prototype.scatterData = ScatterData.fromJson(saved);
+                                this.wallets = Vue.prototype.scatterData.data.keychain.wallets;
+                                this.openedWallet = this.wallets.find(x => x.lastOpened);
+                                this.openedWallet.stopEditing();
+                            })
                         })
-                    })
-                    .catch(err => {
-                        //TODO: Error handling
-                        if(err === 'exists') window.ui.pushError('Error Saving Wallet', `This account name already exists.`);
-                        else console.log(err);
-                        return false;
-                    });
+                        .catch(err => {
+                            //TODO: Error handling
+                            if(err === 'exists') window.ui.pushError('Error Saving Wallet', `This account name already exists.`);
+                            // TODO: Invalid char
+                            return false;
+                        })
+                )
             },
             cancelEditing:function(){
+                this.openedWallet.editing = false;
                 if(this.openedWallet.uniqueKey !== this.wallets.find(x => x.lastOpened).uniqueKey) this.openedWallet = this.wallets.find(x => x.lastOpened);
                 else this.openedWallet = this.preEditedWallet;
-            }
+            },
+            wasSpent:function(trx){
+                const accountNames = this.openedWallet.keyPairs
+                    .map(x => x.accounts.map(a => a.name))
+                    .reduce((a,b) => a.concat(b), [])
+                    .reduce((a,b) => a.indexOf(b) > -1 ? a : a.concat(b), []);
+                let messageTos = trx.transaction.messages.filter(x => Object.keys(x.data).indexOf('amount') > -1).map(m => m.data.to);
+                return messageTos.map(name => accountNames.indexOf(name) > -1).filter(x => x).length !== trx.transaction.messages.length;
+            },
+            isEosTransfer:function(trx){
+                return this.transactionNames(trx).indexOf('eos') > -1
+            },
+            transactionNames:function(trx){
+                return trx.transaction.messages.map(x => x.code).reduce((a,b) => a.indexOf(b) > -1 ? a : a.concat(b), []);
+            },
+        },
+        filters: {
+            transactionSum:function(trx){
+                return trx.transaction.messages
+                    .filter(x => Object.keys(x.data).indexOf('amount') > -1)
+                    .map(m => m.data.amount).reduce((a,b) => a+b,0);
+            },
         }
 
     };

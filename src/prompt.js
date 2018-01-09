@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {LocalStream, NetworkMessage, ScatterData} from 'scattermodels'
+import {LocalStream, NetworkMessage, ScatterData} from 'scatterhelpers'
 import RequestUnlockPrompt from './components/prompts/RequestUnlockPrompt.vue'
 import RequestAuthPrompt from './components/prompts/RequestAuthPrompt.vue'
 import SelectAccountPrompt from './components/prompts/SelectAccountPrompt.vue'

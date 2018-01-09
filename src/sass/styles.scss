@@ -78,37 +78,24 @@ footer {
 /** ANIMATIONS ------------------------------------*/
 
 .fade-enter-active {
-  position:absolute;
-  left:0; right:0;
-  z-index:-1;
-  animation: enter .8s;
+
 }
 
 .fade-leave-active {
   position:absolute;
   left:0; right:0;
   z-index:-1;
-  animation: leave .8s;
+  animation: leave .4s;
 }
 
-  @keyframes enter {
-    0% {
-      opacity: 0;
-      transform: translateY(360px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0px);
-    }
-  }
   @keyframes leave {
     0% {
       opacity: 1;
-      transform: translateY(0px);
+      //transform: translateY(0px);
     }
     100% {
       opacity: 0;
-      transform: translateY(360px);
+      //transform: translateY(360px);
     }
   }
 
@@ -153,7 +140,7 @@ footer {
     }
   }
 
-  &.settings {
+  &.settings, &.send {
     left:20px;
     right:0;
     top:16px;
@@ -565,6 +552,7 @@ button {
           color:$medium-gray;
           margin-left:15px;
           transition:color 0.2s ease;
+          text-decoration: none;
 
           &:hover {
             color:$dark-gray;
@@ -674,6 +662,7 @@ button {
     .item {
       padding:20px 0;
       font-family:'Raleway', sans-serif;
+      box-shadow:0 1px rgba(0,0,0,0.1), 0 2px $white;
 
       &:not(&.wallet){
         box-shadow:0 1px rgba(0,0,0,0.1), 0 2px $white;
@@ -775,6 +764,14 @@ button {
 
         .sub-title {
           font-size:12px;
+          word-break:break-all;
+
+          &.trx-id {
+            font-size:9px;
+            margin-top:5px;
+            border-top:1px solid rgba(0,0,0,0.05);
+            padding-top:5px;
+          }
         }
 
         .coin {
@@ -788,11 +785,19 @@ button {
           font-family: 'Open Sans', sans-serif;
           color:$blue;
           font-weight:600;
+
+          &.spent {
+            color:$red;
+          }
         }
       }
 
       &.editing {
         padding:20px 0 10px 0;
+
+        &:not(:first-child){
+          border-top:1px solid rgba(0,0,0,0.05);
+        }
       }
 
       .account-name-input {
@@ -1085,6 +1090,7 @@ button {
       color:#828282;
       margin-top:5px;
       display:inline-block;
+      word-break: break-all;
     }
 
     .symbol {
@@ -1144,6 +1150,7 @@ button {
     left:0;
     right:0;
     background:rgba(0,0,0,0);
+    z-index:2;
     visibility: hidden;
     transition:background 0.6s ease;
 
@@ -1301,6 +1308,7 @@ button {
       right:0;
       bottom:0;
       padding:20px;
+      z-index:3;
       transform:translateY(-120px);
 
       .wallets {
@@ -1513,6 +1521,7 @@ button {
       color: $dark-gray;
       display:inline-block;
       animation: pulse 2.0s linear infinite;
+      animation-delay:-0.25s;
       //text-shadow:0 0 150px $dark-gray, 0 2px 6px rgba(255,255,255,0.2), 0 -1px 1px rgba(255,255,255,0.8);
     }
 
@@ -1525,8 +1534,8 @@ button {
         color:rgba(255,255,255,1);
         text-shadow:0 0 80px rgba(0,0,0,0.2);
       }
-      80% {
-        color:rgba(255,255,255,0.5);
+      60% {
+        color:rgba(255,255,255,0.8);
         text-shadow:0 0 50px rgba(0,0,0,0.1);
       }
       100% {

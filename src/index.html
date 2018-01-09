@@ -11,7 +11,7 @@
 <body style="width:360px; height:500px;">
     <section id="scatter">
         <section class="top" :class="{'half-screen' : this.$route.name === 'auth', 'full-screen':this.$route.name === 'settings'}"></section>
-        <section class="bottom" :class="{'half-screen' : this.$route.name === 'auth', 'hidden-screen':this.$route.name === 'settings'}"></section>
+        <section class="bottom" :class="{'half-screen' : this.$route.name === 'auth', 'hidden-screen':this.$route.name === 'settings', 'tool-bar':this.$route.name === 'send'}"></section>
 
         <figure v-on:click="toggleSettings" class="settings-button" :class="{'hide':hideSettingsButton}"><i class="fa fa-gear"></i></figure>
         <figure class="logo" :class="[this.$route.name, hideSettingsButton ? 'editing' : '']">Scatter</figure>

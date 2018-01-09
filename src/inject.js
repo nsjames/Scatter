@@ -1,4 +1,4 @@
-import {RandomIdGenerator} from 'scattermodels';
+import {RandomIdGenerator} from 'scatterhelpers';
 import Scatterdapp from 'scatterdapp';
 import Eos from 'eosjs';
 
