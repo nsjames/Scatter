@@ -33,10 +33,12 @@ function setupApp(){
         }
     });
 
-    setTimeout(() => {
-        app.prompt = window.scatterPrompt;
-        console.log('Prompt', app.prompt);
-    }, 20);
+    app.prompt = window.scatterPrompt;
+
+    // setTimeout(() => {
+    //     app.prompt = window.scatterPrompt;
+    //     console.log('Prompt', app.prompt);
+    // }, 20);
 }
 
 function registerReusableComponents(){

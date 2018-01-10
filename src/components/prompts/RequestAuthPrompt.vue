@@ -153,15 +153,16 @@
         },
         mounted(){
             window.onunload = () => this.responder(false);
-
+            console.log(this.allowedAccounts);
             if(this.allowedAccounts && this.allowedAccounts.length) {
+                console.log(this);
                 let acc = this.allowedAccounts.map(z => `${z.account}::${z.permission}`);
 
-                function allowedKeyPair(keyPair) {
+                const allowedKeyPair = (keyPair) => {
                     return keyPair.accounts.map(z => `${z.name}::${z.authority}`).filter(z => acc.indexOf(z) > -1).length
                 }
 
-                function allowedWallet(wallet) {
+                const allowedWallet = (wallet) => {
                     return wallet.keyPairsInNetwork(this.network).filter(x => allowedKeyPair(x)).length
                 }
 

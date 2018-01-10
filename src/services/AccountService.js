@@ -26,7 +26,7 @@ export class AccountService {
             let eos = Eos.Localnet({httpEndpoint:keyPair.network.toEndpoint()});
             eos.getKeyAccounts(keyPair.publicKey).then(res => {
                 if(!res.hasOwnProperty('account_names')){ resolve([]); return false; }
-                Promise.all(res.account_names.map(name => eos.getAccount(name).catch(e => console.log("Error getting account: ", e)))).then(multires => {
+                Promise.all(res.account_names.map(name => eos.getAccount(name).catch(e => resolve([])))).then(multires => {
                     resolve(multires)
                 }).catch(e => resolve([]));
             }).catch(e => resolve([]));
@@ -68,62 +68,6 @@ export class AccountService {
             })
         })
     }
-
-    //TODO: These only work with table based contracts and not EOS
-    // static getBalances(keyPair){
-    //     return new Promise((resolve, reject) => {
-    //         let eos = Eos.Localnet({httpEndpoint:keyPair.network.toEndpoint()});
-    //         let accountNames = keyPair.accounts.map(x => x.name).reduce((a,b) => a.indexOf(b) > -1 ? a : a.concat(b), []);
-    //         Promise.all(accountNames.map(name => this.getBalance(name, eos)))
-    //             .then(bals => resolve(bals.reduce((a,b) => a+b, 0)))
-    //     })
-    // }
-    //
-    // static getBalance(accountName, eos){
-    //     return new Promise((resolve, reject) => {
-    //         //TODO: Switch to real eos for production
-    //         eos.getTableRows({json:true, table:'eos', code:'eos', scope:accountName})
-    //             .then(x => resolve(x.rows.length ? x.rows[0].balance : 0))
-    //             .catch(e => resolve(0))
-    //     })
-    // }
-
-    //TODO: There is no way to get an accounts balance as of now, doing really bad stuff to get it.
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    static getKeyPairBalance(keyPair){
-        return new Promise((resolve, reject) => {
-            let accountNames = keyPair.accounts.map(x => x.name).reduce((a,b) => a.indexOf(b) > -1 ? a : a.concat(b), []);
-            Promise.all(keyPair.accounts.map(account => this.recurseEosTrxTillNoneLeft(account.name, keyPair.network.toEndpoint()))).then(trxs => {
-                const flattened = trxs.reduce((a,b) => a.concat(b), []).reduce((a,b) => a.concat(b), []);
-                const messages = flattened.map(x => x.transaction.messages).reduce((a,b) => a.concat(b), []);
-                const input = messages.filter(x => accountNames.indexOf(x.data.to) > -1).map(x => x.data.amount).reduce((a,b) => a+b, 0);
-                const output = messages.filter(x => accountNames.indexOf(x.data.from) > -1).map(x => x.data.amount).reduce((a,b) => a+b, 0);
-                resolve(input - output);
-            })
-        });
-    }
-
-    static recurseEosTrxTillNoneLeft(account_name, endpoint, acc = [], originalResolver = null){
-        return new Promise((resolve, reject) => {
-            if(originalResolver === null) originalResolver = resolve;
-            Eos.Localnet({httpEndpoint:endpoint}).getTransactions({account_name, skip_seq:acc.length})
-                .then(result => {
-                    let transactions = result.transactions
-                    transactions = transactions.filter(x => x.transaction.messages.map(m => m.code).reduce((a,b) => a.concat(b), []).indexOf('eos') > -1);
-                    if(!transactions.length) originalResolver(acc)
-                    else this.recurseEosTrxTillNoneLeft(account_name, endpoint, acc.concat(transactions), originalResolver)
-                })
-                .catch(e => originalResolver(acc))
-        });
-    }
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
 
     static getWalletTransactions(wallet, eosOnly = true){
         function exp2unix(trx){ return + new Date(trx.transaction.expiration) }

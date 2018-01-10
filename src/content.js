@@ -113,6 +113,7 @@ class ContentScript {
 
     sign(message){
         let allowedAccounts = message.payload.transaction.messages.map(x => x.authorization).reduce((a,b) => a.concat(b), []);
+        console.log(allowedAccounts);
         this.lockAndSignGuard(message, allowedAccounts).then(keyPair => {
             LocalStream.send(NetworkMessage.payload(InternalMessageTypes.PUBLIC_TO_PRIVATE, keyPair.publicKey)).then(privateKey => {
                 if(!privateKey) {

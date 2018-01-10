@@ -13,7 +13,6 @@
                     <figure class="wallet-keys">{{openedWallet.keyPairsInNetwork(currentNetwork).length}} of {{openedWallet.keyPairs.length}} keys on {{currentNetwork.name}}</figure>
                     <section class="send-recv">
                         <router-link :to="{name:'send'}">Send</router-link>
-                        <!--<figure>Recv</figure>-->
                     </section>
                 </section>
 
@@ -36,6 +35,7 @@
                             <figure class="sub-title"><i>{{item.account}}</i></figure>
                             <figure class="title">{{item.transaction.expiration | expiration}}</figure>
                             <figure class="sub-title trx-id">{{item.transaction_id}}</figure>
+                            <figure class="sub-title trx-id"><b>{{item.transaction.messages[0].data.memo}}</b></figure>
                         </figure>
                         <figure class="fifty" v-if="isEosTransfer(item)">
                             <figure class="amount" :class="{'spent':wasSpent(item)}">{{wasSpent(item) ? '-' : '+'}}{{ item | transactionSum }}</figure>
@@ -43,7 +43,6 @@
                         </figure>
 
                         <figure class="fifty" v-else>
-                            <!--<figure class="amount" :class="{'spent':wasSpent(item)}">{{wasSpent(item) ? '-' : '+'}}{{ item | transactionSum }}</figure>-->
                             <figure class="coin" v-for="code in transactionNames(item)">{{code}}</figure>
                         </figure>
                     </section>
@@ -193,16 +192,10 @@
             fetchBalances:function(){
                 this.openedWallet.keyPairs.map(kp => {
                     AccountService.getAccount(kp).then(res => {
-                        console.log(res);
                         const balance = res.map(x => Number(x.eos_balance.replace("EOS", ""))).reduce((a,b) => a+b, 0);
-                        console.log(balance);
                         kp.balance = balance;
                     })
-//                    AccountService.getKeyPairBalance(kp).then(bal => kp.balance = bal);
                 });
-//                this.openedWallet.keyPairs.map(kp => {
-//                    AccountService.getBalances(kp).then(bal => kp.balance = bal);
-//                });
             },
             lockKeychain:function(){
                 LocalStream.send(NetworkMessage.signal(InternalMessageTypes.LOCK)).then(locked => {

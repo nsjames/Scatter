@@ -24,6 +24,11 @@ I've set up a [Trello board](https://trello.com/b/lP7Sj6eA) for tracking issues 
 * Click the `Load unpacked extension...` button and point it at the folder.
 
 
+### Important:
+**At the moment it is not recommended to use multi-account keypairs.
+If a key has multiple accounts associated with it, the first account in the array will be used for signing transactions 
+regardless of it's authority.**
+
 
 
 ## Pre-requisites:
