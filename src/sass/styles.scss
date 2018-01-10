@@ -352,6 +352,11 @@ button {
   margin-bottom:10px;
   z-index: 2;
 
+  .item {
+    overflow:hidden;
+    margin-right:26px;
+  }
+
   &.open {
     border-bottom-left-radius:0;
     border-bottom-right-radius:0;
@@ -395,6 +400,7 @@ button {
       border-left:2px solid $input-border;
       border-right:2px solid $input-border;
       transition:background 0.2s ease;
+      margin-right:0;
 
       &:not(:last-child){ border-bottom:1px solid $gray; }
       &:hover { background:$white; }

@@ -1,15 +1,15 @@
 <template>
     <section class="settings-component">
-        <scatter-select v-if="!editingNetwork" v-bind:options="['Add New Network'].concat(networks.map(function(x){return `${x.name}@${x.host}`}))"
+        <scatter-select v-if="!editingNetwork && !exportingPrivateKey" v-bind:options="['Add New Network'].concat(networks.map(function(x){return `${x.name}@${x.host}`}))"
                         v-bind:force-selected-option="`${currentNetwork.name}@${currentNetwork.host}`" v-on:changed="updateSelectedNetwork"></scatter-select>
-        <section v-if="!editingNetwork">
+        <section v-if="!editingNetwork && !exportingPrivateKey">
             <!--<scatter-select v-bind:options="['USD - United States Dollar']"></scatter-select>-->
             <scatter-button text="Edit Selected Network" v-on:clicked="editCurrentNetwork" style="z-index:2;"></scatter-button>
-            <scatter-button text="Export Private Key" style="z-index:2;" v-on:clicked="dummy"></scatter-button>
+            <scatter-button text="Export Private Key" style="z-index:2;" v-on:clicked="toggleExportingPrivateKey"></scatter-button>
             <scatter-button text="Export Encrypted Keychain" style="z-index:2;" v-on:clicked="dummy"></scatter-button>
             <scatter-button text="Destroy Keychain" is-red="true" v-on:clicked="dummy"></scatter-button>
         </section>
-        <section v-else>
+        <section v-else-if="editingNetwork">
             <section v-if="!confirmingRemoval">
                 <scatter-input icon="fa-server" type="text" placeholder="Name" v-bind:input-text="editableNetwork.name" v-on:changed="updateNewNetworkName"></scatter-input>
                 <scatter-input icon="fa-globe" type="text" placeholder="Host" v-bind:input-text="editableNetwork.host" v-on:changed="updateNewNetworkHost"></scatter-input>
@@ -26,11 +26,18 @@
                 <scatter-button text="Cancel" is-half="true" v-on:clicked="cancelRemoval"></scatter-button>
             </section>
         </section>
+        <section v-else-if="exportingPrivateKey">
+            <scatter-select v-bind:options="keyPairs.map(function(kp){ return `${kp.publicKey}` })"
+                            v-bind:force-selected-option="'Select a public key'" v-on:changed="exposePrivateKey"></scatter-select>
+            <a id="PRIVATE_KEY_DOWNLOAD"><button v-if="exposedPrivateKey" style="word-break:break-all">Download Private Key</button></a>
+            <scatter-button text="Back To Settings" v-on:clicked="toggleExportingPrivateKey"></scatter-button>
+        </section>
     </section>
 </template>
 <script>
     import Vue from 'vue';
-    import {ScatterData, Network} from 'scatterhelpers';
+    import {ScatterData, Network, LocalStream, NetworkMessage} from 'scatterhelpers';
+    import {InternalMessageTypes} from '../messages/InternalMessageTypes';
 
     export default {
         data() {
@@ -42,10 +49,27 @@
                 editableNetwork:Network.placeholder(),
                 addingNew:false,
                 confirmingRemoval:false,
+                exportingPrivateKey:false,
+                keyPairs:Vue.prototype.scatterData.data.keychain.wallets.map(x => x.keyPairs).reduce((a,b) => a.concat(b), []),
+                exposedPrivateKey:false,
             };
         },
         methods: {
             dummy:function(){},
+            createPrivateKeyDownload:function(text,filename){
+                const a = document.getElementById('PRIVATE_KEY_DOWNLOAD');
+                if(!a) return false;
+                a.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+                a.setAttribute('download', filename);
+            },
+            exposePrivateKey:function(publicKey){
+                LocalStream.send(NetworkMessage.payload(InternalMessageTypes.PUBLIC_TO_PRIVATE, publicKey)).then(privateKey => {
+                    this.exposedPrivateKey = true;
+                    const text = `Public Key: ${publicKey} \r\nPrivate Key: ${privateKey}`;
+                    this.createPrivateKeyDownload(text, `${publicKey.substr(0,6)}...${publicKey.substr(-4)}.key`)
+                }).catch(e => { console.log(e); window.ui.pushError('Decryption Error', 'There was a problem decrypting the private key for '+publicKey) })
+            },
+            toggleExportingPrivateKey:function(){ this.exportingPrivateKey = !this.exportingPrivateKey; this.exposedPrivateKey = false; },
             cancelEditing:function(){ this.editingNetwork = false; },
             updateNewNetworkName:function(x){ this.editableNetwork.name = x; },
             updateNewNetworkHost:function(x){ this.editableNetwork.host = x; },
