@@ -86,6 +86,7 @@ function setupGlobals(){
         const decimals = split[1] || '00';
         return `${whole}.${decimals.substr(0, places)}`
     })
+
 }
 
 function beforeAuth(next){ if(!Vue.prototype.scatterData.data.keychain.locked) next({name:'keychain'}); else next() }

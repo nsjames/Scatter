@@ -118,6 +118,12 @@
 
 
                             <figure class="action-button" v-on:click="removeKeyPair(keyPair)">Delete</figure>
+                            <figure class="action-button" v-if="!keyPair.accounts.length" :class="{'active':keyPair.selfStake}" v-on:click="keyPair.selfStake = !keyPair.selfStake">Self Stake</figure>
+
+                            <section class="authority self-staking" v-if="keyPair.selfStake && !keyPair.accounts.length">
+                                <input class="account-name-input" v-model="keyPair.selfStakePrivateKey" type="password" placeholder="Staker Private Key" />
+                                <input class="account-name-input" v-model="keyPair.selfStakeAccountName" placeholder="Name of Staking Account" />
+                            </section>
                         </section>
                         <figure class="public-key">
                             <i class="fa fa-money" style="width:15px;"></i>
@@ -246,7 +252,7 @@
                 )
             },
             removeKeyPair:function(keyPair){
-                if(!keyPair.reclaimed){
+                if(!keyPair.reclaimed && keyPair.accounts.length){
                     window.ui.pushError('Error Removing Account', `You cannot remove accounts that have yet to be reclaimed.`);
                     return false;
                 }
@@ -309,13 +315,18 @@
                     return false;
                 }
 
-                let newKeyPair = this.wallets.concat(this.openedWallet).map(x => x.keyPairs).reduce((a,b) => a.concat(b), []).find(key => !key.accounts.length);
+                let newKeyPair = this.wallets.concat(this.openedWallet).map(x => x.keyPairs).reduce((a,b) => a.concat(b), []).find(key => !key.accounts.length && !key.removed);
                 let accountCreated = null;
                 if(newKeyPair){
                     if(!newKeyPair.hasOwnProperty('tempName') || !newKeyPair.tempName || !newKeyPair.tempName.length){
                         window.ui.pushError('Error Saving Wallet', `New accounts must be named.`);
                         return false;
                     }
+
+                    if(!this.validateAccountName(newKeyPair.tempName)){
+                        return false;
+                    }
+
                     accountCreated = AccountService.createAccount(newKeyPair, newKeyPair.tempName);
                 } else accountCreated = new Promise((res,rej) => res(''));
 
@@ -338,6 +349,7 @@
                         .catch(err => {
                             //TODO: Error handling
                             if(err === 'exists') window.ui.pushError('Error Saving Wallet', `This account name already exists.`);
+                            else window.ui.pushError('Error Saving Wallet', err);
                             // TODO: Invalid char
                             return false;
                         })
@@ -345,8 +357,9 @@
             },
             cancelEditing:function(){
                 this.openedWallet.editing = false;
-                if(this.openedWallet.uniqueKey !== this.wallets.find(x => x.lastOpened).uniqueKey) this.openedWallet = this.wallets.find(x => x.lastOpened);
-                else this.openedWallet = this.preEditedWallet;
+//                if(this.openedWallet.uniqueKey !== this.wallets.find(x => x.lastOpened).uniqueKey) this.openedWallet = this.wallets.find(x => x.lastOpened);
+//                else
+                    this.openedWallet = this.preEditedWallet;
             },
             wasSpent:function(trx){
                 const accountNames = this.openedWallet.keyPairs
@@ -362,13 +375,19 @@
             transactionNames:function(trx){
                 return trx.transaction.messages.map(x => x.code).reduce((a,b) => a.indexOf(b) > -1 ? a : a.concat(b), []);
             },
+            validateAccountName:function(name){
+                function err(){ window.ui.pushError('Account Name Error', 'Account names are limited to the letters a-z ( lowercase ) and the numbers 1-5. If the account name is 13 characters long the last character is limited to a-j') }
+                if(/[^a-z|1-5]/g.test(name)){ err(); return false; }
+                if(name.length === 13 && /[^a-j]/g.test(name.split("")[12])){ err(); return false; }
+                return true;
+            }
         },
         filters: {
             transactionSum:function(trx){
                 return trx.transaction.messages
                     .filter(x => Object.keys(x.data).indexOf('amount') > -1)
                     .map(m => m.data.amount).reduce((a,b) => a+b,0)/10000;
-            },
+            }
         }
 
     };

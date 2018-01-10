@@ -1,6 +1,7 @@
 import {KeyPair, LocalStream, NetworkMessage, KeyPairAccount} from 'scatterhelpers'
 import {InternalMessageTypes} from '../messages/InternalMessageTypes';
 import Eos from 'eosjs';
+import ecc from 'eosjs-ecc';
 
 const CREATOR = 'inita';
 const INITIAL_STAKE = 1;
@@ -51,31 +52,34 @@ export class AccountService {
     }
 
     static async createAccount(keyPair, desiredName){
+
         // TODO IMPORTANT: Do this outside of the extension.
         // There's no way to keep scatter's private key which is needed for creation private in this context.
 
         //TODO Handle multiple approved networks
         return await new Promise((resolve, reject) => {
-            let eos = Eos.Localnet({httpEndpoint:keyPair.network.toEndpoint(), keyProvider:'5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3'});
+            const selfStaking = keyPair.selfStake;
+            const stakerName = selfStaking ? keyPair.selfStakeAccountName : CREATOR;
+            const stakerKey = selfStaking ? keyPair.selfStakePrivateKey : '5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3';
+            let eos = Eos.Localnet({httpEndpoint:keyPair.network.toEndpoint(), keyProvider:stakerKey});
 
             eos.newaccount({
-                creator: CREATOR,
+                creator: stakerName,
                 name: desiredName,
                 owner: keyPair.publicKey,
                 active: keyPair.publicKey,
-                recovery: CREATOR,
+                recovery: stakerName,
                 deposit: `${INITIAL_STAKE} EOS`
             }).then(newAccount => {
+                if(selfStaking) keyPair.reclaimed = true;
                 keyPair.accounts = [
                     KeyPairAccount.fromJson({name:desiredName, authority:'active'}),
                     KeyPairAccount.fromJson({name:desiredName, authority:'owner'})
                 ];
                 resolve(newAccount.transaction_id);
             }).catch(e => {
-                if(e.indexOf('account_name_exists_exception') > -1){
-                    reject('exists');
-                    return false;
-                }
+                console.log("ERROR", e)
+                if(e.indexOf('account_name_exists_exception') > -1){ reject('exists'); return false; }
                 else if(e.indexOf('Invalid character') > -1){
                     let character = e.split('Invalid Character:')[1].split(' ')[1];
                     reject('invalid_character: '+character);
@@ -83,6 +87,8 @@ export class AccountService {
                 }
                 reject(false)
             })
+
+
         })
     }
 

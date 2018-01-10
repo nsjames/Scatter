@@ -825,6 +825,22 @@ button {
           width:60%;
           float:left;
 
+          &.self-staking {
+            width: 100%;
+            padding: 10px 0;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            margin: 10px 0;
+
+            .account-name-input {
+              width:calc(100% - 10px);
+
+              &:not(:last-child){
+                margin-bottom:10px;
+              }
+            }
+          }
+
           &.warn {
             text-transform: uppercase;
             color:$red;
@@ -1090,7 +1106,7 @@ button {
       color:#828282;
       margin-top:5px;
       display:inline-block;
-      word-break: break-all;
+      word-break: break-word;
     }
 
     .symbol {
