@@ -192,7 +192,13 @@
         methods: {
             fetchBalances:function(){
                 this.openedWallet.keyPairs.map(kp => {
-                    AccountService.getKeyPairBalance(kp).then(bal => kp.balance = bal);
+                    AccountService.getAccount(kp).then(res => {
+                        console.log(res);
+                        const balance = res.map(x => Number(x.eos_balance.replace("EOS", ""))).reduce((a,b) => a+b, 0);
+                        console.log(balance);
+                        kp.balance = balance;
+                    })
+//                    AccountService.getKeyPairBalance(kp).then(bal => kp.balance = bal);
                 });
 //                this.openedWallet.keyPairs.map(kp => {
 //                    AccountService.getBalances(kp).then(bal => kp.balance = bal);
@@ -369,7 +375,7 @@
             transactionSum:function(trx){
                 return trx.transaction.messages
                     .filter(x => Object.keys(x.data).indexOf('amount') > -1)
-                    .map(m => m.data.amount).reduce((a,b) => a+b,0);
+                    .map(m => m.data.amount).reduce((a,b) => a+b,0)/1000;
             },
         }
 

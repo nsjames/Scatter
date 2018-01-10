@@ -3,24 +3,31 @@ import {InternalMessageTypes} from '../messages/InternalMessageTypes';
 import Eos from 'eosjs';
 
 const CREATOR = 'inita';
-// const INITIAL_STAKE = 0.0001;
 const INITIAL_STAKE = 1;
 export class AccountService {
 
     static findAccount(keyPair){
         return new Promise((resolve, reject) => {
+            this.getAccount(keyPair).then(multires => {
+                let accounts = [];
+                multires.filter(x => x).map((account) => {
+                    account.permissions.map(permissions => {
+                        accounts.push({name:account.account_name, auth:permissions.perm_name, keys:permissions.required_auth.keys.map(x => x.key)});
+                    });
+                });
+                accounts = accounts.filter(x => x.keys.indexOf(keyPair.publicKey) > -1);
+                resolve(accounts.map(account => KeyPairAccount.fromJson({name:account.name, authority:account.auth})))
+            }).catch(e => resolve([]));
+        });
+    }
+
+    static getAccount(keyPair){
+        return new Promise((resolve, reject) => {
             let eos = Eos.Localnet({httpEndpoint:keyPair.network.toEndpoint()});
             eos.getKeyAccounts(keyPair.publicKey).then(res => {
                 if(!res.hasOwnProperty('account_names')){ resolve([]); return false; }
                 Promise.all(res.account_names.map(name => eos.getAccount(name).catch(e => console.log("Error getting account: ", e)))).then(multires => {
-                    let accounts = [];
-                    multires.filter(x => x).map((account) => {
-                        account.permissions.map(permissions => {
-                            accounts.push({name:account.account_name, auth:permissions.perm_name, keys:permissions.required_auth.keys.map(x => x.key)});
-                        });
-                    });
-                    accounts = accounts.filter(x => x.keys.indexOf(keyPair.publicKey) > -1);
-                    resolve(accounts.map(account => KeyPairAccount.fromJson({name:account.name, authority:account.auth})))
+                    resolve(multires)
                 }).catch(e => resolve([]));
             }).catch(e => resolve([]));
         });
