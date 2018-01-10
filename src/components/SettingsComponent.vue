@@ -1,13 +1,14 @@
 <template>
     <section class="settings-component">
-        <scatter-select v-if="!editingNetwork && !exportingPrivateKey" v-bind:options="['Add New Network'].concat(networks.map(function(x){return `${x.name}@${x.host}`}))"
+        <scatter-select v-if="!editingNetwork && !exportingPrivateKey && !confirmingDestroyKeychain" v-bind:options="['Add New Network'].concat(networks.map(function(x){return `${x.name}@${x.host}`}))"
                         v-bind:force-selected-option="`${currentNetwork.name}@${currentNetwork.host}`" v-on:changed="updateSelectedNetwork"></scatter-select>
-        <section v-if="!editingNetwork && !exportingPrivateKey">
+        <section v-if="!editingNetwork && !exportingPrivateKey && !confirmingDestroyKeychain">
             <!--<scatter-select v-bind:options="['USD - United States Dollar']"></scatter-select>-->
             <scatter-button text="Edit Selected Network" v-on:clicked="editCurrentNetwork" style="z-index:2;"></scatter-button>
             <scatter-button text="Export Private Key" style="z-index:2;" v-on:clicked="toggleExportingPrivateKey"></scatter-button>
-            <scatter-button text="Export Encrypted Keychain" style="z-index:2;" v-on:clicked="dummy"></scatter-button>
-            <scatter-button text="Destroy Keychain" is-red="true" v-on:clicked="dummy"></scatter-button>
+            <a download="keychain.key" v-bind:href="'data:text/plain;charset=utf-8,'+encodeURIComponent(JSON.stringify(keychain))"><scatter-button text="Export Encrypted Keychain" style="z-index:2;" v-on:clicked="dummy"></scatter-button></a>
+            <!-- TODO: <scatter-button text="Change Password" is-red="true" v-on:clicked="dummy"></scatter-button>-->
+            <scatter-button text="Destroy Keychain" is-red="true" v-on:clicked="toggleConfirmingDestroyKeychain"></scatter-button>
         </section>
         <section v-else-if="editingNetwork">
             <section v-if="!confirmingRemoval">
@@ -32,6 +33,15 @@
             <a id="PRIVATE_KEY_DOWNLOAD"><button v-if="exposedPrivateKey" style="word-break:break-all">Download Private Key</button></a>
             <scatter-button text="Back To Settings" v-on:clicked="toggleExportingPrivateKey"></scatter-button>
         </section>
+        <section v-else-if="confirmingDestroyKeychain">
+            <h2>You are about to destroy your entire keychain.</h2>
+            <h4>This includes all wallets and keypairs, and is irreversible. If you haven't made a backup of your keychain go back and click the <b>Export Encrypted Keychain</b> button.</h4>
+            <section style="text-align:center;">
+                <div style="height:1px; width:100%; background:rgba(0,0,0,0.05); margin:10px 0 30px"></div>
+                <scatter-button text="Destroy" is-half="true" is-red="true" v-on:clicked="confirmKeychainDestruction"></scatter-button>
+                <scatter-button text="Cancel" is-half="true" v-on:clicked="toggleConfirmingDestroyKeychain"></scatter-button>
+            </section>
+        </section>
     </section>
 </template>
 <script>
@@ -52,10 +62,22 @@
                 exportingPrivateKey:false,
                 keyPairs:Vue.prototype.scatterData.data.keychain.wallets.map(x => x.keyPairs).reduce((a,b) => a.concat(b), []),
                 exposedPrivateKey:false,
+                keychain:Vue.prototype.scatterData.data,
+                confirmingDestroyKeychain:false,
             };
         },
         methods: {
             dummy:function(){},
+            confirmKeychainDestruction:function(){
+                window.ui.waitFor(
+                    setTimeout(() => {
+                        LocalStream.send(NetworkMessage.signal(InternalMessageTypes.DESTROY_KEYCHAIN)).then(nothing => {
+                            this.$router.push({name:'auth'})
+                            location.reload();
+                        })
+                    },2000)
+                )
+            },
             createPrivateKeyDownload:function(text,filename){
                 const a = document.getElementById('PRIVATE_KEY_DOWNLOAD');
                 if(!a) return false;
@@ -70,6 +92,7 @@
                 }).catch(e => { console.log(e); window.ui.pushError('Decryption Error', 'There was a problem decrypting the private key for '+publicKey) })
             },
             toggleExportingPrivateKey:function(){ this.exportingPrivateKey = !this.exportingPrivateKey; this.exposedPrivateKey = false; },
+            toggleConfirmingDestroyKeychain:function(){ this.confirmingDestroyKeychain = !this.confirmingDestroyKeychain; },
             cancelEditing:function(){ this.editingNetwork = false; },
             updateNewNetworkName:function(x){ this.editableNetwork.name = x; },
             updateNewNetworkHost:function(x){ this.editableNetwork.host = x; },

@@ -12,5 +12,6 @@ export const InternalMessageTypes = {
     KEYCHAIN:'keychain',
     UPDATE:'update',
     PUBLIC_TO_PRIVATE:'pub2priv',
-    RECLAIM:'reclaim'
+    RECLAIM:'reclaim',
+    DESTROY_KEYCHAIN:'destroy_keychain',
 };

@@ -376,9 +376,9 @@
                 return trx.transaction.messages.map(x => x.code).reduce((a,b) => a.indexOf(b) > -1 ? a : a.concat(b), []);
             },
             validateAccountName:function(name){
-                function err(){ window.ui.pushError('Account Name Error', 'Account names are limited to the letters a-z ( lowercase ) and the numbers 1-5. If the account name is 13 characters long the last character is limited to a-j') }
-                if(/[^a-z|1-5]/g.test(name)){ err(); return false; }
-                if(name.length === 13 && /[^a-j]/g.test(name.split("")[12])){ err(); return false; }
+                function err(){ window.ui.pushError('Account Name Error', 'Account names must be at least 2 characters long and are limited to the letters a-z ( lowercase ) and the numbers 1-5. If the account name is 13 characters long the last character is limited to a-j') }
+                if(name.length < 2){ err(); return false; }
+                if(!/(^[a-z1-5.]{1,11}[a-z1-5]$)|(^[a-z1-5.]{12}[a-j1-5]$)/g.test(name)) { err(); return false; }
                 return true;
             }
         },

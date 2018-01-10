@@ -222,12 +222,12 @@ button {
 
   &:hover {
     background:transparent;
-    //box-shadow:0 4px 7px rgba(0,0,0,0.1);
   }
+
   &:active {
     background:$white;
-    //box-shadow:0 1px 1px rgba(0,0,0,0);
   }
+
   &.red {
     border:2px solid #d02222;
     background:#f73e3e;
@@ -241,9 +241,7 @@ button {
     width:calc(50% - 7px);
     display:inline-block;
 
-    &:first-child {
-      margin-right:10px;
-    }
+    &:first-child { margin-right:10px; }
   }
 
   &.bad-touch {

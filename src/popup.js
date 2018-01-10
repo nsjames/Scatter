@@ -65,7 +65,7 @@ function setupRouting(){
 function setupGlobals(){
     window.ui = ui;
     Vue.prototype.toggleSettings = () => router.push({name:(router.currentRoute.name === 'settings' ? 'auth' :'settings')});
-    Vue.prototype.hideSettingsButton = false;
+    Vue.prototype.hideSettingsButton = Vue.prototype.scatterData.data.hash === '';
     Vue.filter('money', function (value) {
         if(!value || value.toString() === '0') return '0.00';
         let decimals = (value.toString().split('.')[1] || '').length;

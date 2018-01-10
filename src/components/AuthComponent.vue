@@ -10,7 +10,7 @@
 
                 <section v-if="selectedKeychainOption === IMPORT_A_KEYCHAIN">
                     <scatter-input icon="fa-table" type="text" placeholder="Json Data" v-on:changed="updateKeychainJson"></scatter-input>
-                    <scatter-button text="Import JSON Keychain" v-on:clicked="importKeychainFromJson();"></scatter-button>
+                    <scatter-button text="Import JSON Keychain" v-on:clicked="importKeychainFromJson"></scatter-button>
                 </section>
 
             </section>
@@ -18,7 +18,7 @@
             <section v-else>
                 <scatter-input icon="fa-lock" type="password" placeholder="Password" v-on:changed="updatePassword"></scatter-input>
                 <scatter-button text="Unlock Keychain" ref="unlockButton" v-on:clicked="unlockKeychain();"></scatter-button>
-                <figure v-on:click="" class="forgot">Recover from seed phrase</figure>
+                <figure v-on:click="" class="forgot">Recover from mnemonic</figure>
             </section>
         </section>
     </section>
@@ -59,7 +59,10 @@
                         Vue.prototype.scatterData = res.scatter;
                         //TODO: Display mnemonic instead before routing to 'keychain'
                         console.log('mnemonic', res.mnemonic);
+                        window.ui.pushError('Save Your Mnemonic Safely Offline ( Write it down! )', res.mnemonic);
+
                         this.keychainAvailable = true;
+                        Vue.prototype.hideSettingsButton = false;
                         this.$router.push({name:'keychain'});
                     }).catch(badPassword => {
                         window.ui.pushError('Password Error', 'Passwords must be at least 8 characters long.');
@@ -77,7 +80,20 @@
                 )
             },
 
-            importKeychainFromJson:function(){}
+            importKeychainFromJson:function(){
+                const err = () => window.ui.pushError('Bad JSON', 'It looks like we can\'t parse this JSON keychain.');
+                if(this.keychainJson.indexOf('hash') === -1){ err(); return false; }
+                if(this.keychainJson.indexOf('settings') === -1){ err(); return false; }
+                if(this.keychainJson.indexOf('wallets') === -1){ err(); return false; }
+                const scatterdata = Object.assign({}, Vue.prototype.scatterData);
+                scatterdata.data = JSON.parse(this.keychainJson);
+                window.ui.waitFor(
+                    LocalStream.send(NetworkMessage.payload(InternalMessageTypes.UPDATE, scatterdata)).then(scatter => {
+                        Vue.prototype.scatterData = ScatterData.fromJson(scatter);
+                        location.reload();
+                    }).catch(e => { window.ui.pushError('Binding Error', 'There was an issue binding the keychain json to scatter') })
+                )
+            }
         }
 
     };

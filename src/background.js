@@ -27,7 +27,7 @@ export class Background {
                 case InternalMessageTypes.PROMPT_IDENTITY: Background.promptIdentity(sendResponse, request.payload); break;
                 case InternalMessageTypes.PROVE_IDENTITY: Background.proveIdentity(sendResponse, request.payload); break;
                 case InternalMessageTypes.RECLAIM: Background.reclaim(sendResponse); break;
-                case 'reset': chrome.storage.local.clear(); sendResponse({}); break;
+                case InternalMessageTypes.DESTROY_KEYCHAIN: Background.destroyKeychain(sendResponse); break;
                 // default: sendResponse(null);
             }
         })
@@ -164,6 +164,11 @@ export class Background {
     }
 
 
+    static destroyKeychain(sendResponse){
+        chrome.storage.local.clear();
+        seed = '';
+        sendResponse({});
+    }
 
 
 
