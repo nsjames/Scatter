@@ -96,7 +96,7 @@
                 </section>
 
                 <section class="contract-props" v-if="structureType === 'props'">
-                    <recursive-list v-bind:kvmap="transaction.data" v-bind:selected-key-pair="selectedKeyPair"></recursive-list>
+                    <recursive-list v-bind:kvmap="transaction.messages[0].data" v-bind:selected-key-pair="selectedKeyPair"></recursive-list>
                 </section>
 
                 <section class="contract-json" v-if="structureType === 'json'">

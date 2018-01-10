@@ -18,7 +18,7 @@
 
                 <section class="ddown">
                     <section class="fifty">
-                        <p class="blue"><b>EOS</b><span>{{openedWallet.networkBalance(currentNetwork) | money}}</span></p>
+                        <p class="blue"><b>EOS</b><span>{{openedWallet.networkBalance(currentNetwork) | money | truncdec(4)}}</span></p>
                         <p><b>USD</b><span>{{openedWallet.networkBalance(currentNetwork) * 10.88 | money | truncdec(2)}}</span></p>
                     </section>
                     <section class="fifty">
@@ -32,7 +32,11 @@
                 <section v-if="listItems.length">
                     <section class="item event" v-for="item in listItems">
                         <figure class="fifty">
-                            <figure class="sub-title"><i>{{item.account}}</i></figure>
+                            <figure class="sub-title">
+                                <i>{{item.transaction.messages[0].data.from}}</i>
+                                <i>to</i>
+                                <i>{{item.transaction.messages[0].data.to}}</i>
+                            </figure>
                             <figure class="title">{{item.transaction.expiration | expiration}}</figure>
                             <figure class="sub-title trx-id">{{item.transaction_id}}</figure>
                             <figure class="sub-title trx-id"><b>{{item.transaction.messages[0].data.memo}}</b></figure>
@@ -190,12 +194,7 @@
         },
         methods: {
             fetchBalances:function(){
-                this.openedWallet.keyPairs.map(kp => {
-                    AccountService.getAccount(kp).then(res => {
-                        const balance = res.map(x => Number(x.eos_balance.replace("EOS", ""))).reduce((a,b) => a+b, 0);
-                        kp.balance = balance;
-                    })
-                });
+                this.openedWallet.keyPairs.map(kp => AccountService.getAccounts(kp).then(res => kp.balance = res.map(x => Number(x.eos_balance.replace("EOS", ""))).reduce((a, b) => a+b, 0)));
             },
             lockKeychain:function(){
                 LocalStream.send(NetworkMessage.signal(InternalMessageTypes.LOCK)).then(locked => {
@@ -210,7 +209,7 @@
                 else if (this.listState === this.listStates.CONTRACTS) this.getTransactions(false);
             },
             getTransactions:function(eosOnly = true){
-                AccountService.getWalletTransactions(this.openedWallet, eosOnly).then(res => {
+                AccountService.getWalletTransactions(this.openedWallet, eosOnly, this.currentNetwork).then(res => {
                     this.listItems = res;
                 })
             },
@@ -270,7 +269,7 @@
 
                 keyPair.network = Vue.prototype.scatterData.data.settings.currentNetwork.clone();
                 window.ui.waitFor(
-                    AccountService.findAccount(keyPair).then(keyPairAccounts => {
+                    AccountService.findAccounts(keyPair).then(keyPairAccounts => {
                         if(!keyPairAccounts.length) {
                             window.ui.pushError('Non Associated Key', `Imported keys must already be associated with an account.`);
                             this.importingKey = KeyPair.placeholder();
@@ -368,7 +367,7 @@
             transactionSum:function(trx){
                 return trx.transaction.messages
                     .filter(x => Object.keys(x.data).indexOf('amount') > -1)
-                    .map(m => m.data.amount).reduce((a,b) => a+b,0)/1000;
+                    .map(m => m.data.amount).reduce((a,b) => a+b,0)/10000;
             },
         }
 

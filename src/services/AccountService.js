@@ -6,9 +6,9 @@ const CREATOR = 'inita';
 const INITIAL_STAKE = 1;
 export class AccountService {
 
-    static findAccount(keyPair){
+    static findAccounts(keyPair){
         return new Promise((resolve, reject) => {
-            this.getAccount(keyPair).then(multires => {
+            this.getAccounts(keyPair).then(multires => {
                 let accounts = [];
                 multires.filter(x => x).map((account) => {
                     account.permissions.map(permissions => {
@@ -17,19 +17,28 @@ export class AccountService {
                 });
                 accounts = accounts.filter(x => x.keys.indexOf(keyPair.publicKey) > -1);
                 resolve(accounts.map(account => KeyPairAccount.fromJson({name:account.name, authority:account.auth})))
-            }).catch(e => resolve([]));
+            }).catch(e => {
+                console.log(e);
+                resolve([])
+            });
         });
     }
 
-    static getAccount(keyPair){
+    static getAccounts(keyPair){
         return new Promise((resolve, reject) => {
             let eos = Eos.Localnet({httpEndpoint:keyPair.network.toEndpoint()});
             eos.getKeyAccounts(keyPair.publicKey).then(res => {
                 if(!res.hasOwnProperty('account_names')){ resolve([]); return false; }
                 Promise.all(res.account_names.map(name => eos.getAccount(name).catch(e => resolve([])))).then(multires => {
                     resolve(multires)
-                }).catch(e => resolve([]));
-            }).catch(e => resolve([]));
+                }).catch(e => {
+                    console.log(e);
+                    resolve([])
+                });
+            }).catch(e => {
+                console.log(e);
+                resolve([])
+            });
         });
     }
 
@@ -77,10 +86,10 @@ export class AccountService {
         })
     }
 
-    static getWalletTransactions(wallet, eosOnly = true){
+    static getWalletTransactions(wallet, eosOnly = true, network = null){
         function exp2unix(trx){ return + new Date(trx.transaction.expiration) }
         return new Promise((resolve, reject) => {
-            let networkedAccounts = wallet.networkAccountMap();
+            let networkedAccounts = wallet.networkAccountMap(network);
 
             Promise.all(Object.keys(networkedAccounts).map(endpoint => {
                 const accounts = networkedAccounts[endpoint].reduce((a,b) => a.concat(b), []);

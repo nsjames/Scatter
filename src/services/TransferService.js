@@ -6,7 +6,8 @@ import {AccountService} from './AccountService';
 export class TransferService {
 
     static send(from, to, quantity, network, fromPublicKey){
-        quantity = quantity*1000
+        quantity = quantity*10000;
+
         return new Promise((resolve, reject) => {
             function err(msg){ window.ui.pushError('Unable To Send', msg) }
 
@@ -32,7 +33,7 @@ export class TransferService {
                             .then(x => {resolve(x)})
                             .catch(x => {err('Could not complete transfer'); reject(false)})
                     }).catch(e => { err(`The account ${to} does not seem to exist on ${network.name}@${network.host}`); reject(false); })
-                }).catch(e => { err('Error getting balance for '+from); reject(false); })
+                }).catch(e => { err('Error getting balance for '+from); console.log(e); reject(false); })
             }).catch(e => { err('There was a problem decrypting the private key for ' + from); console.log(e); reject(false); })
 
 

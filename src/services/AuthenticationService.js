@@ -32,7 +32,7 @@ export class AuthenticationService {
             scatter.data.hash = PasswordHasher.hash(password);
             LocalStream.send(NetworkMessage.payload(InternalMessageTypes.SEED, seed)).then(res => {
 
-                let testnet = new Network('Testnet', 'testnet1.eos.io', 8888);
+                let testnet = new Network('Testnet', 'testnet1.eos.io', 80);
                 let local = new Network('Localnet', '192.168.56.101', 8888)
                 scatter.data.settings.networks = [local, testnet];
                 scatter.data.settings.currentNetwork = local;
