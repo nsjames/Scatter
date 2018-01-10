@@ -16,7 +16,7 @@ export class TransferService {
 
 
             LocalStream.send(NetworkMessage.payload(InternalMessageTypes.PUBLIC_TO_PRIVATE, fromPublicKey)).then(privateKey => {
-                if(!privateKey) { err('There was a problem decrypting the private key for ' + from); reject(false); return false; }
+                console.log('privateKey', privateKey, privateKey === null, !privateKey.length)
 
                 let eos = Eos.Localnet({httpEndpoint: network.toEndpoint(), keyProvider: privateKey});
                 AccountService.getBalance(from, eos).then(balance => {
@@ -32,7 +32,7 @@ export class TransferService {
                             .catch(x => {err('Could not complete transfer'); reject(false)})
                     }).catch(e => { err(`The account ${to} does not seem to exist on ${network.name}@${network.host}`); reject(false); })
                 }).catch(e => { err('Error getting balance for '+from); reject(false); })
-            }).catch(e => { err('There was a problem decrypting the private key for ' + from); reject(false); })
+            }).catch(e => { err('There was a problem decrypting the private key for ' + from); console.log(e); reject(false); })
 
 
 

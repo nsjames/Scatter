@@ -55,7 +55,8 @@ function setupRouting(){
     router.beforeEach((to, from, next) => {
         switch(to.name){
             case 'auth': beforeAuth(next); break;
-            case 'keychain': beforeKeychain(next); break;
+            case 'keychain': lockGuard(next); break;
+            case 'send': lockGuard(next); break;
             default:next()
         }
     });
@@ -88,4 +89,4 @@ function setupGlobals(){
 }
 
 function beforeAuth(next){ if(!Vue.prototype.scatterData.data.keychain.locked) next({name:'keychain'}); else next() }
-function beforeKeychain(next){ if(Vue.prototype.scatterData.data.keychain.locked) next({name:'auth'}); else next() }
+function lockGuard(next){ if(Vue.prototype.scatterData.data.keychain.locked) next({name:'auth'}); else next() }

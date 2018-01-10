@@ -33,6 +33,14 @@ export class AccountService {
         });
     }
 
+    static getBalance(accountName, eos){
+        return new Promise((resolve, reject) => {
+            eos.getAccount(accountName)
+                .then(x => resolve(x.eos_balance))
+                .catch(e => resolve(0))
+        })
+    }
+
     static async createAccount(keyPair, desiredName){
         // TODO IMPORTANT: Do this outside of the extension.
         // There's no way to keep scatter's private key which is needed for creation private in this context.
