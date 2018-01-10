@@ -6,6 +6,7 @@ import {AccountService} from './AccountService';
 export class TransferService {
 
     static send(from, to, quantity, network, fromPublicKey){
+        quantity = quantity*1000
         return new Promise((resolve, reject) => {
             function err(msg){ window.ui.pushError('Unable To Send', msg) }
 
