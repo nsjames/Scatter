@@ -1,3 +1,5 @@
+[![NPM](https://img.shields.io/npm/v/eos-scatter.svg)](https://www.npmjs.org/package/eos-scatter)
+
 # Scatter - Chrome wallet
 
 
