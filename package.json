@@ -1,5 +1,5 @@
 {
-  "name": "scatter",
+  "name": "eos-scatter",
   "version": "1.0.0",
   "description": "EOS Wallet & Bridge",
   "main": "main.js",
@@ -7,6 +7,7 @@
     "dev": "webpack --watch"
   },
   "author": "nsjames",
+  "url":"https://github.com/nsjames/Scatter",
   "license": "MIT",
   "devDependencies": {
     "babel-core": "^6.26.0",

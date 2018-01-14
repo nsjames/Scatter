@@ -1,7 +1,7 @@
 # Scatter - Chrome wallet
 
 
-Scatter is an in-browser wallet for **[EOS](https://eos.io/)** which facilitates interaction between users and dapps.
+Scatter is a Chrome Extension Wallet for **[EOS](https://eos.io/)** which facilitates interaction between users and dapps.
 
 The extension keeps a user's private keys inside of an encrypted storage in a background process attached to their browser that is inaccessible to the website it interacts with. A few secure methods are *exposed* to the website being visited via injected javascript that allow them to request the signing of transactions on the user's behalf, all of which must be manually approved by the user.
 
@@ -31,28 +31,9 @@ regardless of it's authority.**
 
 
 
-## Pre-requisites:
-
-* Webpack is required globally `npm i -g webpack`
-
-This package requires an `npm link` from two packages 
-( [Scatterdapp](https://github.com/nsjames/Scatterdapp), 
-[Scattermodels](https://github.com/nsjames/Scattermodels) ) 
-for the moment until they are hosted on npm. 
-
-( _Scatterdapp is the front-end wrapper around scatter which gets injected into web pages, 
-and Scattermodels are just shared resources between the two_ )
-
-1) Make a directory somewhere called `/scatterdapp/`
-2) Do `git clone https://github.com/nsjames/Scatterdapp.git` inside the directory
-3) While still inside of the `/scatterdapp/` directory do `npm link`
-4) **Repeat 1-3 for `https://github.com/nsjames/Scattermodels.git`**
-5) Then go to wherever you cloned **Scatter** into and do `npm link scatterdapp scattermodels`
-
-
 ## Building:
 
-Building is now handled by webpack. To build into the `./build` directory simply use `npm run dev` or `webpack`.
+Building is handled by webpack. To build into the `./build` directory simply use `npm run dev` or `webpack`.
 
 Then load the unpacked extension in chrome with the method described above.
 
