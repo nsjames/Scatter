@@ -1,5 +1,5 @@
 import { EncryptedStream, LocalStream, AES, RandomIdGenerator, NetworkMessageTypes,
-    NetworkMessage, ScatterError, ContractTransaction, Network } from 'scatterhelpers';
+    NetworkMessage, ScatterError, ContractTransaction, Network } from 'scattermodels';
 import {InternalMessageTypes} from './messages/InternalMessageTypes';
 import Eos from 'eosjs';
 import ecc from 'eosjs-ecc';

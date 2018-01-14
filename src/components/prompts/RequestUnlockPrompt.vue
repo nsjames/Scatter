@@ -15,7 +15,7 @@
 <script>
     import Vue from 'vue';
     import {AuthenticationService} from '../../services/AuthenticationService';
-    import {LocalStream, NetworkMessage} from 'scatterhelpers'
+    import {LocalStream, NetworkMessage} from 'scattermodels'
 
     export default {
         data() {

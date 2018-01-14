@@ -81,7 +81,7 @@
 </template>
 <script>
     import Vue from 'vue';
-    import {ScatterData, Network, Wallet} from 'scatterhelpers';
+    import {ScatterData, Network, Wallet} from 'scattermodels';
     import {TransferService} from '../services/TransferService';
 
     export default {

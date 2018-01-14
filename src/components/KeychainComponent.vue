@@ -164,7 +164,7 @@
 </template>
 <script>
     import Vue from 'vue';
-    import {Keychain, KeyPair, Wallet, ScatterData, LocalStream, NetworkMessage} from 'scatterhelpers'
+    import {Keychain, KeyPair, Wallet, ScatterData, LocalStream, NetworkMessage} from 'scattermodels'
     import {EOSKeygen} from '../cryptography/EOSKeygen'
     import {InternalMessageTypes} from '../messages/InternalMessageTypes';
     import {AccountService} from '../services/AccountService';

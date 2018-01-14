@@ -110,7 +110,7 @@
 <script>
     import Vue from 'vue';
     import {AuthenticationService} from '../../services/AuthenticationService';
-    import {LocalStream, NetworkMessage, Wallet, KeyPair} from 'scatterhelpers'
+    import {LocalStream, NetworkMessage, Wallet, KeyPair} from 'scattermodels'
 
     export default {
         props: ['responder', 'network', 'transaction', 'permission', 'allowedAccounts'],

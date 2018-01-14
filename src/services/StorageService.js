@@ -1,4 +1,4 @@
-import {ScatterData} from 'scatterhelpers'
+import {ScatterData} from 'scattermodels'
 
 export class StorageService {
 

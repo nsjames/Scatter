@@ -1,7 +1,7 @@
 import {PasswordHasher} from '../cryptography/PasswordHasher';
 import {InternalMessageTypes} from '../messages/InternalMessageTypes';
 import {Mnemonic} from '../cryptography/Mnemonic';
-import {LocalStream, ScatterData, NetworkMessage, Network} from 'scatterhelpers'
+import {LocalStream, ScatterData, NetworkMessage, Network} from 'scattermodels'
 
 export class AuthenticationService {
 

@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import {ScatterData, LocalStream, NetworkMessage} from 'scatterhelpers'
+import {ScatterData, LocalStream, NetworkMessage} from 'scattermodels'
 import AuthComponent from './components/AuthComponent.vue'
 import KeychainComponent from './components/KeychainComponent.vue'
 import SettingsComponent from './components/SettingsComponent.vue'

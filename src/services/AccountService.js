@@ -1,4 +1,4 @@
-import {KeyPair, LocalStream, NetworkMessage, KeyPairAccount} from 'scatterhelpers'
+import {KeyPair, LocalStream, NetworkMessage, KeyPairAccount} from 'scattermodels'
 import {InternalMessageTypes} from '../messages/InternalMessageTypes';
 import Eos from 'eosjs';
 import ecc from 'eosjs-ecc';

@@ -6,7 +6,7 @@
 </template>
 <script>
     export default {
-        data() { return { input:this.inputText }; },
+        data() { return { input:this.inputText || '' }; },
         methods: { changed:function(){ this.$emit('changed', this.input) } },
         props: ['icon', 'type', 'placeholder', 'inputText', 'isHalf', 'disabled'],
         watch: { input: function(n,o) { this.changed(); } }

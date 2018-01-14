@@ -27,7 +27,7 @@ module.exports = {
         alias: {
             vue: 'vue/dist/vue.js',
             scatterdapp: path.join(__dirname, "node_modules/scatterdapp"),
-            scatterhelpers: path.join(__dirname, "node_modules/scatterhelpers")
+            scattermodels: path.join(__dirname, "node_modules/scattermodels")
         },
         modules: [ path.join(__dirname, "node_modules") ]
     },

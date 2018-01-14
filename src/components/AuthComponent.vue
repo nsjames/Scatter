@@ -9,10 +9,9 @@
                 </section>
 
                 <section v-if="selectedKeychainOption === IMPORT_A_KEYCHAIN">
-                    <scatter-input icon="fa-table" type="text" placeholder="Json Data" v-on:changed="updateKeychainJson"></scatter-input>
+                    <scatter-input icon="fa-table" type="password" placeholder="Json Data" v-on:changed="updateKeychainJson"></scatter-input>
                     <scatter-button text="Import JSON Keychain" v-on:clicked="importKeychainFromJson"></scatter-button>
                 </section>
-
             </section>
 
             <section v-else>
@@ -25,7 +24,7 @@
 </template>
 <script>
     import Vue from 'vue';
-    import {LocalStream, ScatterData, NetworkMessage} from 'scatterhelpers'
+    import {LocalStream, ScatterData, NetworkMessage} from 'scattermodels'
     import {Mnemonic} from '../cryptography/Mnemonic';
     import {PasswordHasher} from '../cryptography/PasswordHasher'
     import {EOSKeygen} from '../cryptography/EOSKeygen'
@@ -51,7 +50,7 @@
         methods: {
             updatePassword:function(x){ this.password = x; },
             updateKeychainJson:function(x){ this.keychainJson = x; },
-            updateSelectedKeychainOption:function(x){ this.selectedKeychainOption = x; },
+            updateSelectedKeychainOption:function(x){ this.selectedKeychainOption = x; this.password = ''; this.keychainJson = ''; },
 
             createNewKeychain:function(){
                 window.ui.waitFor(
@@ -86,13 +85,15 @@
                 if(this.keychainJson.indexOf('settings') === -1){ err(); return false; }
                 if(this.keychainJson.indexOf('wallets') === -1){ err(); return false; }
                 const scatterdata = Object.assign({}, Vue.prototype.scatterData);
-                scatterdata.data = JSON.parse(this.keychainJson);
-                window.ui.waitFor(
-                    LocalStream.send(NetworkMessage.payload(InternalMessageTypes.UPDATE, scatterdata)).then(scatter => {
-                        Vue.prototype.scatterData = ScatterData.fromJson(scatter);
-                        location.reload();
-                    }).catch(e => { window.ui.pushError('Binding Error', 'There was an issue binding the keychain json to scatter') })
-                )
+                try {
+                    scatterdata.data = JSON.parse(this.keychainJson);
+                    window.ui.waitFor(
+                        LocalStream.send(NetworkMessage.payload(InternalMessageTypes.UPDATE, scatterdata)).then(scatter => {
+                            Vue.prototype.scatterData = ScatterData.fromJson(scatter);
+                            location.reload();
+                        }).catch(e => { window.ui.pushError('Binding Error', 'There was an issue binding the keychain json to scatter') })
+                    )
+                } catch(e) { window.ui.pushError('JSON Error', 'There was an error parsing the JSON. Make sure you copied the entire file into the input field.') }
             }
         }
 

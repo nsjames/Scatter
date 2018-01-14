@@ -1,5 +1,5 @@
 import Eos from 'eosjs';
-import {LocalStream, NetworkMessage} from 'scatterhelpers';
+import {LocalStream, NetworkMessage} from 'scattermodels';
 import {InternalMessageTypes} from '../messages/InternalMessageTypes';
 import {AccountService} from './AccountService';
 

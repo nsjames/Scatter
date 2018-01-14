@@ -1,5 +1,5 @@
 import {StorageService} from './services/StorageService'
-import {ScatterData, LocalStream, WaterfallEncryption, AES, NetworkMessage, NetworkMessageTypes} from 'scatterhelpers'
+import {ScatterData, LocalStream, WaterfallEncryption, AES, NetworkMessage, NetworkMessageTypes} from 'scattermodels'
 import {InternalMessageTypes} from './messages/InternalMessageTypes';
 import {AccountService} from './services/AccountService'
 

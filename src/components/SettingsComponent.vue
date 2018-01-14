@@ -46,7 +46,7 @@
 </template>
 <script>
     import Vue from 'vue';
-    import {ScatterData, Network, LocalStream, NetworkMessage} from 'scatterhelpers';
+    import {ScatterData, Network, LocalStream, NetworkMessage} from 'scattermodels';
     import {InternalMessageTypes} from '../messages/InternalMessageTypes';
 
     export default {

@@ -1,4 +1,4 @@
-import {KeyPair} from 'scatterhelpers';
+import {KeyPair} from 'scattermodels';
 import {Mnemonic} from './Mnemonic';
 import {PrivateKey} from 'eosjs-ecc';
 
