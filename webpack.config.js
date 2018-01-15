@@ -16,7 +16,6 @@ module.exports = {
         'prompt.js': path.resolve(__dirname, './src/prompt.js'),
         'prompt.omit': path.resolve(__dirname, './src/prompt.html'),
 
-        // TODO There's a problem with this, make sure manifest.json is in /build/ dir manually
         'manifest.omit': path.resolve(__dirname, './src/manifest.json'),
     },
     output: {
