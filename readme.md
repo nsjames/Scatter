@@ -22,8 +22,10 @@ I've set up a [Trello board](https://trello.com/b/lP7Sj6eA) for tracking issues 
 
 **Setting it up is simple.**
 * Extract the contents of the zip-file to somewhere on your computer
-* Open up `chrome://extensions/` in your browser
+* Open up **Chrome** and type `chrome://extensions/` into the url bar
 * Click the `Load unpacked extension...` button and point it at the folder.
+![1](https://github.com/nsjames/Scatter/raw/master/chrome_ext.jpg)
+![2](https://github.com/nsjames/Scatter/raw/master/chrome_ext2.jpg)
 
 
 ### Important:
