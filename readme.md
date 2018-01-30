@@ -2,6 +2,9 @@
 
 # Scatter - Chrome wallet
 
+# Scatter has moved!
+## Scatter 2.0 is now under the EOS Essentials Organization. [You can find it here](https://github.com/EOSEssentials/Scatter).
+
 
 Scatter is a Chrome Extension Wallet for **[EOS](https://eos.io/)** which facilitates interaction between users and dapps.
 

@@ -5,6 +5,7 @@ import AuthComponent from './components/AuthComponent.vue'
 import KeychainComponent from './components/KeychainComponent.vue'
 import SettingsComponent from './components/SettingsComponent.vue'
 import SendComponent from './components/SendComponent.vue'
+import IdentitiesComponent from './components/IdentitiesComponent.vue'
 import ButtonComponent from './components/ButtonComponent.vue'
 import WorkingAlert from './components/alerts/WorkingAlert.vue'
 import ErrorAlert from './components/alerts/ErrorAlert.vue'
@@ -22,6 +23,7 @@ const routes = [
     { path: '', name:'auth', component: AuthComponent},
     { path: '/keychain', name:'keychain', component: KeychainComponent},
     { path: '/settings', name:'settings', component: SettingsComponent},
+    { path: '/identities', name:'identities', component: IdentitiesComponent},
     { path: '/send', name:'send', component: SendComponent}
 ];
 
@@ -57,6 +59,7 @@ function setupRouting(){
             case 'auth': beforeAuth(next); break;
             case 'keychain': lockGuard(next); break;
             case 'send': lockGuard(next); break;
+            case 'identities': lockGuard(next); break;
             default:next()
         }
     });

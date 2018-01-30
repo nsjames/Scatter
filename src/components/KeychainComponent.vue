@@ -12,6 +12,7 @@
                     <figure class="wallet-name" v-on:click="toggleSelectingWallet">{{openedWallet.name}}</figure>
                     <figure class="wallet-keys">{{openedWallet.keyPairsInNetwork(currentNetwork).length}} of {{openedWallet.keyPairs.length}} keys on {{currentNetwork.name}}</figure>
                     <section class="send-recv">
+                        <router-link :to="{name:'identities'}">Identities</router-link>
                         <router-link :to="{name:'send'}">Send</router-link>
                     </section>
                 </section>
